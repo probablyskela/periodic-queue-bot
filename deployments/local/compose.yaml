@@ -1,0 +1,55 @@
+services:
+  pqbot: &pqbot
+    image: pqbot:latest
+    env_file:
+      - env_files/dev.env
+    volumes:
+      - ../../:/app
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin@email.com
+      - PGADMIN_DEFAULT_PASSWORD=pgadmin
+      - PGADMIN_LISTEN_PORT=5050
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - 5050:5050
+  rabbitmq:
+    image: rabbitmq:4-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 1m
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq/
+    ports:
+      - 5672:5672
+  celery:
+    <<: *pqbot
+    command: celery -A app.tasks.tasks worker -l info
+
+volumes:
+  postgres:
+    driver:
+      local
+  pgadmin:
+    driver:
+      local
+  rabbitmq:
+    driver:
+      local

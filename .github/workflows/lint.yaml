@@ -1,0 +1,26 @@
+name: periodic queue bot run linter
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install
+      - name: Run linter
+        run: poetry run pre-commit run --all-files
