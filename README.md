@@ -115,7 +115,7 @@ with notification message for an event wiil be sent 10 minutes before the previo
 function. Minimum allowed periodicity is one (1) minute.**
 
 ## Hosting
-Fastest way to host the bot is to host it locally. Even though it's not the best way but it's the easiest.  
+Fastest way to host the bot is to host it locally. Even though it's not the best way but it's the easiest.
 All you need is `docker` installed on your system.
 See: https://docs.docker.com/engine/install/
 
