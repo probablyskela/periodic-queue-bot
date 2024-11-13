@@ -115,7 +115,8 @@ with notification message for an event wiil be sent 10 minutes before the previo
 function. Minimum allowed periodicity is one (1) minute.**
 
 ## Hosting
-Fastest way to host the bot is to host it locally. All you need is `docker` installed on your system.
+Fastest way to host the bot is to host it locally. Even though it's not the best way but it's the easiest.
+All you need is `docker` installed on your system.
 See: https://docs.docker.com/engine/install/
 
 Quickstart:
@@ -123,27 +124,21 @@ Quickstart:
     ```
     git clone https://github.com/probablyskela/periodic-queue-bot.git
     ```
-2. Create `dev.env` file in `deployments/local/env_files` and fill it according to `example.env`.
-    Docker compose will create postgres and rabbitmq containers, but you will need to create postgres database with the name you specified in `dev.env` file. You can do this using `pgadmin` or any other DBMS of your choice.
-3. Run command
+2. Create a new bot using [@BotFather](https://telegram.me/BotFather) to get a token.
+3. Create `dev.env` file in `deployments/local/env_files` and fill it according to `example.env`. For `TOKEN` use token that you got from BotFather.
+4. Run command
     ```
     make rebuild
     ```
     This will build bot image and run all needed containers using docker compose.
-
-## Contributing
-I welcome any Issues and Pull Requests.
-If you want to contribute, please make sure you enable pre-commit hooks.
-```
-pre-commit install
-```
-
-Also that would be nice if you test your code. You can run tests using following command
-```
-make test
-```
-
-Current tasks:
-1. Consider using APScheduler instead of Celery.
-2. Allow modifying event parameters without overwriting other settings.
-3. Allow exporting chat config (it's already being saved in database so should be easy).
+5. Create and migrate the database by running the commands:
+    ```
+    docker compose -f deployments/local/compose.yaml -p pqbot exec postgres sh
+    psql -U postgres
+    CREATE DATABASE <database-name>;
+    \q
+    exit
+    make migrate
+    ```
+    `<database-name>` should be equal to the value of `POSTGRES__PATH` in your `dev.env` file.
+6. Use the bot
