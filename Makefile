@@ -32,6 +32,10 @@ logs: ## Show logs for pqbot:latest container
 sh: ## Open shell for pqbot:latest container
 	@docker compose -f deployments/local/compose.yaml -p ${APP_NAME} exec ${APP_NAME} sh
 
+.PHONY: migrate
+migrate: ## Run all migrations
+	@docker compose -f deployments/local/compose.yaml -p ${APP_NAME} exec ${APP_NAME} alembic upgrade head
+
 .PHONY: test
 test: ## Run all tests
 	@PYTHONDONTWRITEBYTECODE=1 pytest -vv
