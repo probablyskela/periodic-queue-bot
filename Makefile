@@ -25,12 +25,14 @@ rebuild: ## Stop all docker containers, rebuild the pqbot image, and start all c
 	make up
 
 .PHONY: logs
-logs: ## Show logs for pqbot:latest container
-	@docker compose -f deployments/local/compose.yaml -p ${APP_NAME} logs ${APP_NAME} -f
+logs: ## Show logs for specified container
+	@read -p "Enter a container name: " container; \
+	docker compose -f deployments/local/compose.yaml -p ${APP_NAME} logs $$container -f
 
 .PHONY: sh
-sh: ## Open shell for pqbot:latest container
-	@docker compose -f deployments/local/compose.yaml -p ${APP_NAME} exec ${APP_NAME} sh
+sh: ## Open shell for specified container
+	@read -p "Enter a container name: " container; \
+	docker compose -f deployments/local/compose.yaml -p ${APP_NAME} exec $$container sh
 
 .PHONY: migrate
 migrate: ## Run all migrations

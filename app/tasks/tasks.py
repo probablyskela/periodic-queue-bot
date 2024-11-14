@@ -71,4 +71,5 @@ def send_event_notification_message_task(event_id: str):
                 eta=event.next_date - service.evaluate_event_offset(event=event),
             )
 
-    asyncio.run(task())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(task())

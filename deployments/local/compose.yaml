@@ -3,8 +3,12 @@ services:
     image: pqbot:latest
     env_file:
       - env_files/dev.env
+    depends_on:
+      - postgres
+      - rabbitmq
     volumes:
       - ../../:/app
+
   postgres:
     image: postgres:17-alpine
     environment:
@@ -14,6 +18,7 @@ services:
       - postgres:/var/lib/postgresql/data
     ports:
       - 5432:5432
+
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -26,8 +31,10 @@ services:
       - pgadmin:/var/lib/pgadmin
     ports:
       - 5050:5050
+
   rabbitmq:
     image: rabbitmq:4-alpine
+    hostname: rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=rabbitmq
       - RABBITMQ_DEFAULT_PASS=rabbitmq
@@ -39,6 +46,7 @@ services:
       - rabbitmq:/var/lib/rabbitmq/
     ports:
       - 5672:5672
+
   celery:
     <<: *pqbot
     command: celery -A app.tasks.tasks worker -l info
