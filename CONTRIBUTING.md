@@ -24,12 +24,13 @@ Basic rules for branch names:
     7. General branches: `gen/<branch-name>`
 
 Current tasks:
-1. Fix periodicity bug.
-2. Consider using APScheduler instead of Celery.
-3. Allow modifying event parameters without overwriting other settings.
-4. Allow exporting chat config (it's already being saved in database so should be easy).
-5. Add caching to service layer.
-6. Refactor service, repository and handlers layers.
-7. General refactoring.
-8. Rename app folder to bot.
-9. Fix skipping logic.
+* Consider using APScheduler instead of Celery.
+* Allow modifying event parameters without overwriting other settings.
+* Allow exporting chat config (it's already being saved in database so should be easy).
+* Add caching to service layer.
+* Refactor service layer.
+* Refactor repository layer.
+* Refactor handlers layer.
+* General refactoring.
+* Rename app folder to bot.
+* Fix skipping logic.
