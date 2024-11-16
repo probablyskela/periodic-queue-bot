@@ -38,6 +38,7 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=rabbitmq
       - RABBITMQ_DEFAULT_PASS=rabbitmq
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit consumer_timeout 126489600000
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s

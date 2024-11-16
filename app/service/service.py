@@ -46,7 +46,6 @@ class Service:
                 offset=event_input.offset,
                 times_occurred=event_input.times_occurred,
             )
-
             event = self.update_event_next_date(event=event)
             if event is None:
                 continue
@@ -90,47 +89,56 @@ class Service:
     def update_event_next_date(self, event: schema.Event) -> schema.Event | None:
         """Update event's `next_date` to be the closest possible occurrence date.
 
-        Returns `None` if an event will never occur again
-        (E.g. if `periodicity` is `None` and `next_date` already passed)
+        Returns `None` if an event will never occur again,
+        which is when `periodicity` is `None` and `next_date` already passed
+        or `periodicity` end up being outside of the allowed range.
+
+        Else `schema.Event` object is returned.
         """
-        ts = datetime.now(tz=pytz.utc) + RelativeDelta(minutes=1)
-
-        if event.next_date > ts + self.evaluate_event_offset(event=event):
-            return event
-
-        if not event.periodicity:
-            return None
+        ts = datetime.now(tz=pytz.utc) + RelativeDelta(seconds=30)
 
         while event.next_date <= ts + self.evaluate_event_offset(event=event):
-            event.next_date += self.evaluate_event_periodicity(event=event)
+            if not (periodicity := self.evaluate_event_periodicity(event=event)):
+                return None
+
+            event.next_date += periodicity
             event.times_occurred += 1
 
         return event
 
-    def evaluate_event_periodicity(self, event: schema.Event) -> RelativeDelta:
+    def evaluate_event_periodicity(self, event: schema.Event) -> RelativeDelta | None:
         """Evaluate `util.RelativeDelta` object for next event occurrance.
 
-        If event has no periodicity rules specified, minimal allowed periodicity returned.
+        If event has no periodicity rules specified
+        or if event periodicity is not within the allowed range, None is returned.
 
         Returns `util.RelativeDelta` object.
         """
         if not event.periodicity:
-            return config.min_periodicity
-        return max(
-            config.min_periodicity,
-            self.evaluate_period(period=event.periodicity, t=event.times_occurred),
-        )
+            return None
+
+        periodicity = self.evaluate_period(period=event.periodicity, t=event.times_occurred)
+        if not (config.min_periodicity <= periodicity <= config.max_periodicity):
+            return None
+
+        return periodicity
 
     def evaluate_event_offset(self, event: schema.Event) -> RelativeDelta:
         """Evaluate offset for `next_date`.
 
-        If event has no offset rules specified, empty offset returned (0 seconds).
+        If event has no offset rules specified
+        or if event offset is not within the allowd range, empty offset returned (0 seconds).
 
         Returns `util.RelativeDelta` object.
         """
         if not event.offset:
             return RelativeDelta()
-        return self.evaluate_period(period=event.offset, t=event.times_occurred)
+
+        offset = self.evaluate_period(period=event.offset, t=event.times_occurred)
+        if not (config.min_offset <= offset <= config.max_offset):
+            return RelativeDelta()
+
+        return offset
 
     @staticmethod
     def evaluate_period(period: schema.Period, t: int) -> RelativeDelta:

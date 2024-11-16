@@ -4,7 +4,7 @@ Bot manages creation of queues / attendance lists for periodic events.
 ![Notification message example](assets/images/notification_message_example.jpg "Notification message example")
 
 ## Prerequisites:
-You will need `docker` to be installed on your system.
+You will need `docker` to be installed on your system.  
 See: https://docs.docker.com/engine/install/
 
 ## Configuration:
@@ -27,12 +27,12 @@ Example of a configuration file:
         {
             "name": "Mandatory Dota 2 session",
             "initial_date": "03-10-2024 16:00:00 +0200",
-            "offset": {
-                "days": "2 + 3 * (t % 2)"
-            }
             "periodicity": {
                 "days": "2 + 3 * (n % 2)"
             },
+            "offset": {
+                "days": "2 + 3 * (t % 2)"
+            }
         }
     ]
 }
@@ -58,7 +58,7 @@ Each `events` object has fields:
 - `minutes`: Optional field. Formula to calculate minutes.
 - `seconds`: Optional field. Formula to calculate seconds.
 
-## Periodicity
+## Periodicity and Offset
 You can create periodic event that happens every day:
 ```
 {
@@ -82,14 +82,14 @@ Every week and one day (if this week the event has occurred on Friday, next week
 ```
 And so on.
 
-**Values in periodicity fields are not just numbers. They are formulas.**
+**Values in periodicity and offset fields are not just numbers. They are formulas.**
 You can use variables `t` and `n` in them to create more complex rules.
 
-The `t` variable stands for the number of times an event has already occurred.
+The `t` variable stands for the number of times an event has already occurred.  
 The `n` variable stands for the ordinal number of an event that the next date is being
-calculated for, so `n` always equals `t + 1`.
+calculated for, so `n` always equals `t + 1`.  
 The `n` variable introduced solely for the purpose of writing clean formulas without the
-need of `t + 1` to immitate the value of `n` variable.
+need of `t + 1` to immitate the value of `n` variable.  
 You can specify `times_occurred` value when creating an event, then the `t` variable
 for the next event calculation will be equal to `times_occurred` and `n` will be
 equal to `times_occurred + 1`.
@@ -98,25 +98,35 @@ equal to `times_occurred + 1`.
 {
     "name": "Biweekly event",
     "initial_date": "01-11-2024 12:30:00 +0200",
+    "periodicity": {
+        "days": "2 + 3 * (n % 2)"
+    },
     "offset": {
         "days": "2 + 3 * (t % 2)",
         "minutes": "10"
-    }
-    "periodicity": {
-        "days": "2 + 3 * (n % 2)"
-    }
-    "times_occurred": 2,
+    },
+    "times_occurred": 2
 }
 ```
 This way we can create an event that happens weekly on Thursdays and Fridays,
 with notification message for an event wiil be sent 10 minutes before the previous event.
 (E.g. notification message for Friday's event will be sent 10 minutes before Thursday's event).
-**If periodicity value ends up being irrational it will be rounded using Python's standard `round`
-function. Minimum allowed periodicity is one (1) minute.**
+
+If periodicity value ends up being irrational it will be rounded using Python's standard `round` function.
+
+**Minimum allowed periodicity is one (1) minute, maximum allowed periodicity is two (2) years.**  
+**Maximum allowed offset is two (2) years.**
+
+If periodicity is outside the allowed range, the event will **not** occur.  
+If offset is outside the allowed range, **no** offset will be used.  
+**It's user's responsibility to ensure that periodicity value within the allowed range.**  
+
+Also, the notification message for the `n + 1`th event should not occur before
+the notification message for `n`th event. Otherwise the bot will not work as expected.
 
 ## Hosting
-Fastest way to host the bot is to host it locally. Even though it's not the best way but it's the easiest.
-All you need is `docker` installed on your system.
+Fastest way to host the bot is to host it locally. Even though it's not the best way but it's the easiest.  
+All you need is `docker` installed on your system.  
 See: https://docs.docker.com/engine/install/
 
 Quickstart:
