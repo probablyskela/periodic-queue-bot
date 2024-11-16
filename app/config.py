@@ -52,8 +52,14 @@ class Config(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 
     token: str = Field(default=...)
+
     date_format: str = "%d-%m-%Y %H:%M:%S %z"
+
     min_periodicity: RelativeDelta = RelativeDelta(minutes=1)
+    max_periodicity: RelativeDelta = RelativeDelta(years=2)
+
+    min_offset: RelativeDelta = RelativeDelta()
+    max_offset: RelativeDelta = RelativeDelta(years=2)
 
     postgres: PostgresConfig = Field(default=...)
     database_url: typing.Annotated[str, AfterValidator(build_database_url)] = ""

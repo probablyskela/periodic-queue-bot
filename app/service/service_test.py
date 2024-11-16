@@ -195,7 +195,7 @@ def test_service_update_event_next_date(service: Service):
                 initial_date=now - RelativeDelta(minutes=10),
                 next_date=now - RelativeDelta(minutes=10),
                 times_occurred=0,
-                offset=schema.Period(minutes="4"),
+                offset=schema.Period(minutes="4", seconds="30"),
                 periodicity=schema.Period(minutes="15"),
             ),
             schema.Event(
@@ -205,7 +205,7 @@ def test_service_update_event_next_date(service: Service):
                 initial_date=now - RelativeDelta(minutes=10),
                 next_date=now + RelativeDelta(minutes=20),
                 times_occurred=2,
-                offset=schema.Period(minutes="4"),
+                offset=schema.Period(minutes="4", seconds="30"),
                 periodicity=schema.Period(minutes="15"),
             ),
         ),
@@ -248,10 +248,10 @@ def test_service_evaluate_event_periodicity(service: Service):
                 name="",
                 initial_date=now,
                 next_date=now,
-                periodicity=schema.Period(seconds="10"),
+                periodicity=None,
                 times_occurred=1,
             ),
-            config.min_periodicity,
+            None,
         ),
         (
             schema.Event(
@@ -259,10 +259,21 @@ def test_service_evaluate_event_periodicity(service: Service):
                 name="",
                 initial_date=now,
                 next_date=now,
-                periodicity=None,
+                periodicity=schema.Period(years="3"),
                 times_occurred=1,
             ),
-            config.min_periodicity,
+            None,
+        ),
+        (
+            schema.Event(
+                chat_id=0,
+                name="",
+                initial_date=now,
+                next_date=now,
+                periodicity=schema.Period(seconds="10"),
+                times_occurred=1,
+            ),
+            None,
         ),
     ]
 
@@ -304,6 +315,28 @@ def test_service_evaluate_event_offset(service: Service):
                 initial_date=now,
                 next_date=now,
                 offset=None,
+                times_occurred=1,
+            ),
+            RelativeDelta(),
+        ),
+        (
+            schema.Event(
+                chat_id=0,
+                name="",
+                initial_date=now,
+                next_date=now,
+                offset=schema.Period(minutes="-1"),
+                times_occurred=1,
+            ),
+            RelativeDelta(),
+        ),
+        (
+            schema.Event(
+                chat_id=0,
+                name="",
+                initial_date=now,
+                next_date=now,
+                offset=schema.Period(years="3"),
                 times_occurred=1,
             ),
             RelativeDelta(),
