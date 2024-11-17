@@ -9,6 +9,7 @@ from app.repository.occurrence import OccurrenceRepository
 class Repository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
         self.chat = ChatRepository(session=session)
         self.event = EventRepository(session=session)
         self.occurrence = OccurrenceRepository(session=session)

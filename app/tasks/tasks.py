@@ -26,14 +26,14 @@ def send_event_notification_message_task(event_id: str) -> None:
             return
 
         async with get_service() as service:
-            event = await service.get_event(event_id=event_uuid)
+            event = await service.event.get(filter_=schema.EventGetFilter(id=event_uuid))
             if event is None:
                 logger.warning(
                     f"can't send notification message: event with id: {event_id} not found.",
                 )
                 return
 
-            chat = await service.get_chat(chat_id=event.chat_id)
+            chat = await service.chat.get(filter_=schema.ChatGetFilter(id=event.chat_id))
             if chat is None:
                 logger.warning(
                     f"can't send notification message: chat with id: {event.chat_id} not found.",
@@ -59,12 +59,12 @@ def send_event_notification_message_task(event_id: str) -> None:
                 )
 
             occurrence.message_id = message.message_id
-            await service.insert_occurrence(occurrence=occurrence)
+            await service.occurrence.upsert(occurrence=occurrence)
 
             event = service.update_event_next_date(event=event)
             if event is None:
                 return
-            await service.upsert_event(event=event)
+            await service.event.upsert(event=event)
 
             send_event_notification_message_task.apply_async(
                 kwargs={"event_id": str(event.id)},

@@ -23,6 +23,8 @@ Basic rules for branch names:
     6. Documentation branches: `docs/<branch-name>`
     7. General branches: `gen/<branch-name>`
 
+Start commit message with upper case and try to keep them as descriptive as possible.
+
 Current tasks:
 * Consider using APScheduler instead of Celery.
 * Allow modifying event parameters without overwriting other settings.

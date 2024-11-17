@@ -16,18 +16,22 @@ async def occurrence_callback_handler(
 ) -> None:
     now = datetime.now(tz=pytz.utc)
 
-    occurrence = await service.get_occurrence(occurrence_id=callback_data.occurrence_id)
+    occurrence = await service.occurrence.get(
+        filter_=schema.OccurrenceGetFilter(id=callback_data.occurrence_id),
+    )
     if occurrence is None:
         await callback.answer(text="Event is expired or invalid.")
         return
 
+    entry = await service.entry.get(
+        filter_=schema.EntryGetFilter(
+            occurrence_id=occurrence.id,
+            user_id=callback.from_user.id,
+        ),
+    )
+
     match callback_data.action:
         case callbacks.OccurrenceActionEnum.JOIN:
-            entry = await service.get_entry(
-                occurrence_id=occurrence.id,
-                user_id=callback.from_user.id,
-            )
-
             if entry:
                 if entry.is_done is True:
                     await callback.answer(text="You are already done. Can't join.")
@@ -35,7 +39,7 @@ async def occurrence_callback_handler(
                     await callback.answer(text="You are already in the queue.")
                 return
 
-            await service.upsert_entry(
+            await service.entry.upsert(
                 entry=schema.Entry(
                     occurrence_id=occurrence.id,
                     username=callback.from_user.username,
@@ -47,11 +51,6 @@ async def occurrence_callback_handler(
                 ),
             )
         case callbacks.OccurrenceActionEnum.LEAVE:
-            entry = await service.get_entry(
-                occurrence_id=occurrence.id,
-                user_id=callback.from_user.id,
-            )
-
             if entry is None:
                 await callback.answer(text="You are not in the queue.")
                 return
@@ -60,17 +59,14 @@ async def occurrence_callback_handler(
                 await callback.answer(text="You are already done. Can't leave.")
                 return
 
-            await service.delete_last_user_entry(
-                occurrence_id=occurrence.id,
-                user_id=callback.from_user.id,
+            await service.entry.delete(
+                filter_=schema.EntryDeleteFilter(
+                    occurrence_id=occurrence.id,
+                    user_id=callback.from_user.id,
+                ),
             )
 
         case callbacks.OccurrenceActionEnum.SKIP:
-            entry = await service.get_entry(
-                occurrence_id=occurrence.id,
-                user_id=callback.from_user.id,
-            )
-
             if entry is None:
                 await callback.answer(text="You are not in the queue.")
                 return
@@ -80,14 +76,9 @@ async def occurrence_callback_handler(
                 return
 
             entry.is_skipping = not entry.is_skipping
-            await service.upsert_entry(entry=entry)
+            await service.entry.upsert(entry=entry)
 
         case callbacks.OccurrenceActionEnum.DONE:
-            entry = await service.get_entry(
-                occurrence_id=occurrence.id,
-                user_id=callback.from_user.id,
-            )
-
             if entry is None:
                 await callback.answer(text="You are not in the queue.")
                 return
@@ -98,19 +89,21 @@ async def occurrence_callback_handler(
 
             entry.is_skipping = False
             entry.is_done = True
-            await service.upsert_entry(entry=entry)
+            await service.entry.upsert(entry=entry)
 
-    event = await service.get_event(event_id=occurrence.event_id)
+    event = await service.event.get(filter_=schema.EventGetFilter(id=occurrence.event_id))
     if event is None:
         await callback.answer(text="Internal Error.")
         return
 
-    chat = await service.get_chat(chat_id=event.chat_id)
+    chat = await service.chat.get(filter_=schema.ChatGetFilter(id=event.chat_id))
     if chat is None:
         await callback.answer(text="Internal Error.")
         return
 
-    entries = await service.get_entries(occurrence_id=occurrence.id)
+    entries = await service.entry.get_many(
+        filter_=schema.EntryGetManyFilter(occurrence_id=occurrence.id),
+    )
 
     current_index = -1
     for index, entry in enumerate(entries):
