@@ -13,7 +13,7 @@ async def occurrence_callback_handler(
     bot: aiogram.Bot,
     service: Service,
     callback_data: callbacks.OccurrenceCallbackFactory,
-):
+) -> None:
     now = datetime.now(tz=pytz.utc)
 
     occurrence = await service.get_occurrence(occurrence_id=callback_data.occurrence_id)
@@ -61,7 +61,7 @@ async def occurrence_callback_handler(
                 return
 
             await service.delete_last_user_entry(
-                occurence_id=occurrence.id,
+                occurrence_id=occurrence.id,
                 user_id=callback.from_user.id,
             )
 
@@ -142,4 +142,4 @@ async def occurrence_callback_handler(
         reply_markup=build_occurrence_keyboard(occurrence_id=occurrence.id),
     )
 
-    await callback.answer(text="Joined queue successfully.")
+    await callback.answer(text="Success.")

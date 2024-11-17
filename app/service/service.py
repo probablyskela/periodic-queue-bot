@@ -23,7 +23,7 @@ class Service:
     ) -> None:
         from app import tasks
 
-        await self._repository.delete_chat_events(chat_id=chat_id)
+        await self._repository.event.delete(filter_=schema.EventDeleteFilter(chat_id=chat_id))
 
         chat = schema.Chat(
             id=chat_id,
@@ -31,9 +31,7 @@ class Service:
             config=configuration_raw,
         )
 
-        await self._repository.upsert_chat(chat=chat)
-
-        events = []
+        await self._repository.chat.upsert(chat=chat)
 
         for event_input in configuration.events:
             event = schema.Event(
@@ -55,36 +53,48 @@ class Service:
                 eta=event.next_date - self.evaluate_event_offset(event=event),
             )
 
-            events.append(event)
-
-        await self._repository.upsert_events(events=events)
+            await self._repository.event.upsert(event=event)
 
     async def get_chat(self, chat_id: int) -> schema.Chat | None:
-        return await self._repository.get_chat(chat_id=chat_id)
+        return await self._repository.chat.get(filter_=schema.ChatGetFilter(id=chat_id))
 
-    async def upsert_events(self, events: list[schema.Event]) -> None:
-        await self._repository.upsert_events(events=events)
+    async def upsert_event(self, event: schema.Event) -> None:
+        await self._repository.event.upsert(event=event)
 
     async def get_event(self, event_id: uuid.UUID) -> schema.Event | None:
-        return await self._repository.get_event(event_id=event_id)
+        return await self._repository.event.get(filter_=schema.EventGetFilter(id=event_id))
 
     async def insert_occurrence(self, occurrence: schema.Occurrence) -> None:
-        await self._repository.insert_occurrence(occurrence=occurrence)
+        await self._repository.occurrence.upsert(occurrence=occurrence)
 
     async def get_occurrence(self, occurrence_id: uuid.UUID) -> schema.Occurrence | None:
-        return await self._repository.get_occurrence(occurrence_id=occurrence_id)
+        return await self._repository.occurrence.get(
+            filter_=schema.OccurrenceGetFilter(id=occurrence_id),
+        )
 
     async def upsert_entry(self, entry: schema.Entry) -> None:
-        await self._repository.upsert_entry(entry=entry)
+        await self._repository.entry.upsert(entry=entry)
 
     async def get_entry(self, occurrence_id: uuid.UUID, user_id: int) -> schema.Entry | None:
-        return await self._repository.get_entry(occurrence_id=occurrence_id, user_id=user_id)
+        return await self._repository.entry.get(
+            filter_=schema.EntryGetFilter(
+                occurrence_id=occurrence_id,
+                user_id=user_id,
+            ),
+        )
 
     async def get_entries(self, occurrence_id: uuid.UUID) -> list[schema.Entry]:
-        return await self._repository.get_entries(occurrence_id=occurrence_id)
+        return await self._repository.entry.get_many(
+            filter_=schema.EntryGetManyFilter(occurrence_id=occurrence_id),
+        )
 
-    async def delete_last_user_entry(self, occurence_id: uuid.UUID, user_id: int) -> None:
-        await self._repository.delete_last_user_entry(occurence_id=occurence_id, user_id=user_id)
+    async def delete_last_user_entry(self, occurrence_id: uuid.UUID, user_id: int) -> None:
+        await self._repository.entry.delete(
+            filter_=schema.EntryDeleteFilter(
+                occurrence_id=occurrence_id,
+                user_id=user_id,
+            ),
+        )
 
     def update_event_next_date(self, event: schema.Event) -> schema.Event | None:
         """Update event's `next_date` to be the closest possible occurrence date.

@@ -44,7 +44,7 @@ Fields:
 Each `events` object has fields:
 - `name`: Event name.
 - `description`: Optional field. Event description, will be included in notification message.
-- `initial_date`: Initial event date in format `%d-%m-%Y %H:%M:%S %z`. It can be in the past, the bot will automatically compute the next date of event occurrence using periodicity rules and update `times_occured` accordingly.
+- `initial_date`: Initial event date in format `%d-%m-%Y %H:%M:%S %z`. It can be in the past, the bot will automatically compute the next date of event occurrence using periodicity rules and update `times_occurred` accordingly.
 - `periodicity`: Optional field. Contains rules of periodicity, if not specified, event will occur only once on the `initial_date`.
 - `offset`: Optional field. Contains rules of notification offset. Offset means how much time before the event occurres, the notification message should be sent. If not specified, notification message will be sent when the event occurres.
 - `times_occurred` Optional field. Sets the number of times the event has already occurred.

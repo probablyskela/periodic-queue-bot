@@ -5,9 +5,9 @@ from unittest.mock import Mock, call
 import pytest
 import pytz
 from pytest_mock import MockerFixture
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import schema, tasks
-from app.config import config
 from app.repository import Repository
 from app.util import RelativeDelta
 
@@ -15,8 +15,8 @@ from .service import Service
 
 
 @pytest.fixture
-def repository(mocker: MockerFixture) -> Repository | Mock:
-    return mocker.create_autospec(spec=Repository)
+def repository(mocker: MockerFixture) -> Repository:
+    return Repository(session=mocker.create_autospec(spec=AsyncSession))
 
 
 @pytest.fixture
@@ -25,16 +25,16 @@ def service(repository: Repository | Mock) -> Service:
 
 
 @pytest.fixture
-def load_configuration_success_mocks(mocker: MockerFixture) -> None:
+def load_configuration_mocks(mocker: MockerFixture) -> None:
     mocker.patch.object(tasks.send_event_notification_message_task, "apply_async")
 
 
 async def test_service_load_configuration_success(
     mocker: MockerFixture,
-    repository: Repository | Mock,
+    repository: Repository,
     service: Service,
-    load_configuration_success_mocks,
-):
+    load_configuration_mocks: None,
+) -> None:
     now = datetime.now(tz=pytz.utc)
 
     timezone = pytz.timezone("Europe/Kyiv").zone or ""
@@ -73,15 +73,23 @@ async def test_service_load_configuration_success(
 
     mocker.patch.object(uuid, "uuid4", return_value=event_id)
     spy_event_notification_message_task = mocker.spy(
-        tasks.send_event_notification_message_task, "apply_async",
+        tasks.send_event_notification_message_task,
+        "apply_async",
     )
+    spy_repository_event_delete = mocker.spy(repository.event, "delete")
+    spy_repository_chat_upsert = mocker.spy(repository.chat, "upsert")
+    spy_repository_event_upsert = mocker.spy(repository.event, "upsert")
 
     await service.load_configuration(
-        chat_id=chat_id, configuration=configuration, configuration_raw=configuration_raw,
+        chat_id=chat_id,
+        configuration=configuration,
+        configuration_raw=configuration_raw,
     )
 
-    repository.delete_chat_events.assert_called_once_with(chat_id=chat_id)
-    repository.upsert_chat.assert_called_once_with(
+    spy_repository_event_delete.assert_called_once_with(
+        filter_=schema.EventDeleteFilter(chat_id=chat_id),
+    )
+    spy_repository_chat_upsert.assert_called_once_with(
         chat=schema.Chat(
             id=chat_id,
             timezone=timezone,
@@ -96,21 +104,19 @@ async def test_service_load_configuration_success(
             ),
         ],
     )
-    repository.upsert_events.assert_called_once_with(
-        events=[
-            schema.Event(
-                id=event_id,
-                chat_id=chat_id,
-                name=good_event.name,
-                initial_date=good_event.initial_date,
-                next_date=good_event.initial_date,
-                offset=good_event.offset,
-            ),
-        ],
+    spy_repository_event_upsert.assert_called_once_with(
+        event=schema.Event(
+            id=event_id,
+            chat_id=chat_id,
+            name=good_event.name,
+            initial_date=good_event.initial_date,
+            next_date=good_event.initial_date,
+            offset=good_event.offset,
+        ),
     )
 
 
-def test_service_update_event_next_date(service: Service):
+def test_service_update_event_next_date(service: Service) -> None:
     now = datetime.now(tz=pytz.utc)
     event_id = uuid.uuid4()
 
@@ -216,7 +222,7 @@ def test_service_update_event_next_date(service: Service):
         assert expected == actual
 
 
-def test_service_evaluate_event_periodicity(service: Service):
+def test_service_evaluate_event_periodicity(service: Service) -> None:
     now = datetime.now(tz=pytz.utc)
 
     cases = [
@@ -282,7 +288,7 @@ def test_service_evaluate_event_periodicity(service: Service):
         assert expected == actual
 
 
-def test_service_evaluate_event_offset(service: Service):
+def test_service_evaluate_event_offset(service: Service) -> None:
     now = datetime.now(tz=pytz.utc)
 
     cases = [
@@ -348,7 +354,7 @@ def test_service_evaluate_event_offset(service: Service):
         assert expected == actual
 
 
-def test_service_evaluate_period(service: Service):
+def test_service_evaluate_period(service: Service) -> None:
     cases = [
         (0, schema.Period(days="4"), RelativeDelta(days=4)),
         (6, schema.Period(days="t"), RelativeDelta(days=6)),
@@ -360,7 +366,13 @@ def test_service_evaluate_period(service: Service):
         (
             0,
             schema.Period(
-                years="1", months="1", weeks="1", days="1", hours="1", minutes="1", seconds="1",
+                years="1",
+                months="1",
+                weeks="1",
+                days="1",
+                hours="1",
+                minutes="1",
+                seconds="1",
             ),
             RelativeDelta(years=1, months=1, weeks=1, days=1, hours=1, minutes=1, seconds=1),
         ),

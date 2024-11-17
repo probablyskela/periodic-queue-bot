@@ -14,14 +14,16 @@ from app.models import Base
 
 
 @pytest.fixture(scope="session")
-def event_loop(request):
+def event_loop() -> typing.Generator[asyncio.AbstractEventLoop, None, None]:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 
 @pytest.fixture(scope="session")
-def setup_testcontainers(event_loop) -> typing.Generator[None, None, None]:
+def setup_testcontainers(
+    event_loop: asyncio.AbstractEventLoop,
+) -> typing.Generator[None, None, None]:
     postgres = PostgresContainer("postgres:17-alpine")
     postgres.start()
 
@@ -37,7 +39,7 @@ def setup_testcontainers(event_loop) -> typing.Generator[None, None, None]:
 
 
 @pytest.fixture
-async def db_connection(setup_testcontainers) -> typing.AsyncGenerator[AsyncConnection, None]:
+async def db_connection(setup_testcontainers: None) -> typing.AsyncGenerator[AsyncConnection, None]:
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
 

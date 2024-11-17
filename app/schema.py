@@ -19,7 +19,7 @@ class Period(BaseModel):
     seconds: str | None = None
 
 
-def validate_date(v: str | datetime | None, _: ValidationInfo):
+def validate_date(v: str | datetime | None, _: ValidationInfo) -> datetime | None:
     if v is None:
         return None
     if isinstance(v, datetime):
@@ -29,7 +29,7 @@ def validate_date(v: str | datetime | None, _: ValidationInfo):
     return datetime.strptime(v, config.date_format).astimezone(tz=pytz.utc)
 
 
-def validate_period(v: Period | None, _: ValidationInfo):
+def validate_period(v: Period | None, _: ValidationInfo) -> Period | None:
     if v is None or all(v is None for v in v.model_dump().values()):
         return None
     return v
@@ -44,7 +44,7 @@ class EventInput(BaseModel):
     times_occurred: int = 0
 
 
-def validate_timezone(v: str, _: ValidationInfo):
+def validate_timezone(v: str, _: ValidationInfo) -> str | None:
     return pytz.timezone(zone=v).zone
 
 
@@ -59,6 +59,10 @@ class Chat(BaseModel):
     config: dict[str, typing.Any]
 
 
+class ChatGetFilter(typing.TypedDict, total=False):
+    id: int
+
+
 class Event(BaseModel):
     id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     chat_id: int
@@ -71,11 +75,23 @@ class Event(BaseModel):
     times_occurred: int = 0
 
 
+class EventGetFilter(typing.TypedDict, total=False):
+    id: uuid.UUID
+
+
+class EventDeleteFilter(typing.TypedDict, total=False):
+    chat_id: int
+
+
 class Occurrence(BaseModel):
     id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     event_id: uuid.UUID
     message_id: int
     created_at: typing.Annotated[datetime, BeforeValidator(validate_date)]
+
+
+class OccurrenceGetFilter(typing.TypedDict, total=False):
+    id: uuid.UUID
 
 
 class Entry(BaseModel):
@@ -87,3 +103,17 @@ class Entry(BaseModel):
     created_at: typing.Annotated[datetime, BeforeValidator(validate_date)]
     is_skipping: bool
     is_done: bool
+
+
+class EntryGetFilter(typing.TypedDict, total=False):
+    occurrence_id: uuid.UUID
+    user_id: int
+
+
+class EntryGetManyFilter(typing.TypedDict, total=False):
+    occurrence_id: uuid.UUID
+
+
+class EntryDeleteFilter(typing.TypedDict, total=False):
+    occurrence_id: uuid.UUID
+    user_id: int
