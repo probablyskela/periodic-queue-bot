@@ -1,7 +1,7 @@
 from .util import RelativeDelta
 
 
-def test_RelativeDelta():
+def test_RelativeDelta() -> None:
     assert RelativeDelta(minutes=2) > RelativeDelta(minutes=1)
     assert RelativeDelta(hours=25) > RelativeDelta(days=1)
     assert RelativeDelta(hours=24) == RelativeDelta(days=1)

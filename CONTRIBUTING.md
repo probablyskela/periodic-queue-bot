@@ -29,8 +29,8 @@ Current tasks:
 * Allow exporting chat config (it's already being saved in database so should be easy).
 * Add caching to service layer.
 * Refactor service layer.
-* Refactor repository layer.
 * Refactor handlers layer.
 * General refactoring.
 * Rename app folder to bot.
 * Fix skipping logic.
+* Allow creating notification channel to notify next person in the queue for an event.

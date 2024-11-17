@@ -17,8 +17,8 @@ celery = Celery(broker=config.rabbitmq_url)
 
 
 @celery.task
-def send_event_notification_message_task(event_id: str):
-    async def task():
+def send_event_notification_message_task(event_id: str) -> None:
+    async def task() -> None:
         try:
             event_uuid = uuid.UUID(event_id, version=4)
         except ValueError:
@@ -64,7 +64,7 @@ def send_event_notification_message_task(event_id: str):
             event = service.update_event_next_date(event=event)
             if event is None:
                 return
-            await service.upsert_events(events=[event])
+            await service.upsert_event(event=event)
 
             send_event_notification_message_task.apply_async(
                 kwargs={"event_id": str(event.id)},

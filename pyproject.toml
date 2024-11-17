@@ -5,8 +5,11 @@ filterwarnings = "ignore::DeprecationWarning"
 
 [tool.ruff]
 line-length = 100
-select = ["ALL"]
 fix = true
+extend-exclude = ["migrations/*"]
+
+[tool.ruff.lint]
+select = ["ALL"]
 
 ignore = [
     "D100", # docstrings
@@ -18,14 +21,11 @@ ignore = [
     "D106",
     "D107",
 
-    "ANN001",
-    "ANN003",
     "ANN101", # annotations for self
     "ANN102", # annotations for cls
-    "ANN201",
-    "ANN202",
 
     "PLR0913", # too many arguments to function call
+    "PLW0603",
     "TD003", # issue link in TODO
     "FIX002", # to do todo :p
     "A002",
@@ -37,12 +37,13 @@ ignore = [
     "ISC001",
     "PLR",
     "FBT002",
+    "ARG001",
     "ARG002",
     "G004",
     "C901",
+    "S101",
+    "N802",
 ]
-
-extend-exclude = ["migrations/*", "*_test.py", "conftest.py"]
 
 [tool.mypy]
 exclude = ["migrations/*", "*_test.py", "^conftest.py&"]
