@@ -3,11 +3,11 @@ Bot manages creation of queues / attendance lists for periodic events.
 
 ![Notification message example](assets/images/notification_message_example.jpg "Notification message example")
 
-## Prerequisites:
+## Prerequisites
 You will need `docker` to be installed on your system.  
 See: https://docs.docker.com/engine/install/
 
-## Configuration:
+## Configuration
 You can configure the bot by using `/configure` comand and attaching configration file.
 ![Bot configuration example](assets/images/configure_command_example.jpg "Bot configuration example")
 Example of a configuration file:
@@ -22,7 +22,7 @@ Example of a configuration file:
             "periodicity": {
                 "weeks": "1"
             },
-            "times_occurred": 2,
+            "times_occurred": 2
         },
         {
             "name": "Mandatory Dota 2 session",
@@ -151,4 +151,5 @@ Quickstart:
     make migrate
     ```
     `<database-name>` should be equal to the value of `POSTGRES__PATH` in your `dev.env` file.
-6. Use the bot
+6. Configure the bot
+7. Use the bot
