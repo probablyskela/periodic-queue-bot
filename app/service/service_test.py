@@ -1,27 +1,15 @@
 import uuid
 from datetime import datetime
-from unittest.mock import Mock, call
+from unittest.mock import call
 
 import pytest
 import pytz
 from pytest_mock import MockerFixture
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import schema, tasks
 from app.repository import Repository
+from app.service import Service
 from app.util import RelativeDelta
-
-from .service import Service
-
-
-@pytest.fixture
-def repository(mocker: MockerFixture) -> Repository:
-    return Repository(session=mocker.create_autospec(spec=AsyncSession))
-
-
-@pytest.fixture
-def service(repository: Repository | Mock) -> Service:
-    return Service(repository=repository)
 
 
 @pytest.fixture
@@ -72,13 +60,13 @@ async def test_service_load_configuration_success(
     event_id = uuid.uuid4()
 
     mocker.patch.object(uuid, "uuid4", return_value=event_id)
-    spy_event_notification_message_task = mocker.spy(
+    spy_event_notification_message_task = mocker.patch.object(
         tasks.send_event_notification_message_task,
         "apply_async",
     )
-    spy_repository_event_delete = mocker.spy(repository.event, "delete")
-    spy_repository_chat_upsert = mocker.spy(repository.chat, "upsert")
-    spy_repository_event_upsert = mocker.spy(repository.event, "upsert")
+    spy_service_event_delete = mocker.patch.object(service.event, "delete")
+    spy_service_chat_upsert = mocker.patch.object(service.chat, "upsert")
+    spy_service_event_upsert = mocker.patch.object(service.event, "upsert")
 
     await service.load_configuration(
         chat_id=chat_id,
@@ -86,10 +74,10 @@ async def test_service_load_configuration_success(
         configuration_raw=configuration_raw,
     )
 
-    spy_repository_event_delete.assert_called_once_with(
+    spy_service_event_delete.assert_called_once_with(
         filter_=schema.EventDeleteFilter(chat_id=chat_id),
     )
-    spy_repository_chat_upsert.assert_called_once_with(
+    spy_service_chat_upsert.assert_called_once_with(
         chat=schema.Chat(
             id=chat_id,
             timezone=timezone,
@@ -104,7 +92,7 @@ async def test_service_load_configuration_success(
             ),
         ],
     )
-    spy_repository_event_upsert.assert_called_once_with(
+    spy_service_event_upsert.assert_called_once_with(
         event=schema.Event(
             id=event_id,
             chat_id=chat_id,
