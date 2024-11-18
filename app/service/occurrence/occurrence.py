@@ -18,6 +18,7 @@ class OccurrenceService:
 
     def generate_notification_message_text(
         self,
+        occurrence: schema.Occurrence,
         event: schema.Event,
         chat: schema.Chat,
         entries: list[schema.Entry] | None = None,
@@ -39,7 +40,7 @@ class OccurrenceService:
             return skip + name + curr
 
         timezone = pytz.timezone(zone=chat.timezone)
-        date = event.next_date.astimezone(tz=timezone)
+        date = occurrence.created_at.astimezone(tz=timezone)
         date_str = (
             date.strftime("%A, %b %d at %H:%M:%S")
             if datetime.now(tz=timezone).year == date.year

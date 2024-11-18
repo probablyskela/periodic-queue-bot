@@ -107,6 +107,7 @@ async def occurrence_callback_handler(
 
     await bot.edit_message_text(
         text=service.occurrence.generate_notification_message_text(
+            occurrence=occurrence,
             event=event,
             chat=chat,
             entries=entries,

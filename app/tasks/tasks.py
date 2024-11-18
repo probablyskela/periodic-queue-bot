@@ -51,7 +51,11 @@ async def send_notification_message(event_id: str) -> None:
         async with aiogram.Bot(token=config.token) as bot:
             message = await bot.send_message(
                 chat_id=chat.id,
-                text=service.occurrence.generate_notification_message_text(event=event, chat=chat),
+                text=service.occurrence.generate_notification_message_text(
+                    occurrence=occurrence,
+                    event=event,
+                    chat=chat,
+                ),
                 reply_markup=build_occurrence_keyboard(occurrence_id=occurrence.id),
             )
 
@@ -128,6 +132,7 @@ async def resend_notification_message(occurrence_id: str) -> None:
             message = await bot.send_message(
                 chat_id=chat.id,
                 text=service.occurrence.generate_notification_message_text(
+                    occurrence=occurrence,
                     event=event,
                     chat=chat,
                     entries=entries,
