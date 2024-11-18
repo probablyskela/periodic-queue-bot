@@ -7,21 +7,19 @@ import pytz
 from pytest_mock import MockerFixture
 
 from app import schema, tasks
-from app.repository import Repository
 from app.service import Service
 from app.util import RelativeDelta
 
 
 @pytest.fixture
 def load_configuration_mocks(mocker: MockerFixture) -> None:
-    mocker.patch.object(tasks.send_event_notification_message_task, "apply_async")
+    mocker.patch.object(tasks.send_notification_message_task, "apply_async")
 
 
 async def test_service_load_configuration_success(
-    mocker: MockerFixture,
-    repository: Repository,
-    service: Service,
     load_configuration_mocks: None,
+    mocker: MockerFixture,
+    service: Service,
 ) -> None:
     now = datetime.now(tz=pytz.utc)
 
@@ -60,8 +58,8 @@ async def test_service_load_configuration_success(
     event_id = uuid.uuid4()
 
     mocker.patch.object(uuid, "uuid4", return_value=event_id)
-    spy_event_notification_message_task = mocker.patch.object(
-        tasks.send_event_notification_message_task,
+    spy_send_notification_message_task = mocker.patch.object(
+        tasks.send_notification_message_task,
         "apply_async",
     )
     spy_service_event_delete = mocker.patch.object(service.event, "delete")
@@ -84,7 +82,7 @@ async def test_service_load_configuration_success(
             config=configuration_raw,
         ),
     )
-    spy_event_notification_message_task.assert_has_calls(
+    spy_send_notification_message_task.assert_has_calls(
         [
             call(
                 kwargs={"event_id": str(event_id)},

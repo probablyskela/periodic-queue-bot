@@ -56,7 +56,7 @@ class Service:
             if event is None:
                 continue
 
-            tasks.send_event_notification_message_task.apply_async(
+            tasks.send_notification_message_task.apply_async(
                 kwargs={"event_id": str(event.id)},
                 eta=event.next_date - self.evaluate_event_offset(event=event),
             )
