@@ -49,6 +49,11 @@ async def test_occurrence_service_generate_notification_message_text_success(
     now = datetime(year=2024, month=11, day=18, hour=9, minute=40, second=0, tzinfo=pytz.utc)
     cases = [
         (
+            schema.Occurrence(
+                event_id=uuid.uuid4(),
+                message_id=1,
+                created_at=now,
+            ),
             schema.Event(
                 chat_id=1,
                 name="Event Name",
@@ -64,6 +69,11 @@ async def test_occurrence_service_generate_notification_message_text_success(
             "Event Name starts on Monday, Nov 18 at 09:40:00!\n",
         ),
         (
+            schema.Occurrence(
+                event_id=uuid.uuid4(),
+                message_id=1,
+                created_at=now + RelativeDelta(months=1),
+            ),
             schema.Event(
                 chat_id=1,
                 name="Event Name",
@@ -79,6 +89,11 @@ async def test_occurrence_service_generate_notification_message_text_success(
             "Event Name starts on Wednesday, Dec 18 at 11:40:00!\n",
         ),
         (
+            schema.Occurrence(
+                event_id=uuid.uuid4(),
+                message_id=1,
+                created_at=now + RelativeDelta(months=12),
+            ),
             schema.Event(
                 chat_id=1,
                 name="Event Name",
@@ -94,6 +109,11 @@ async def test_occurrence_service_generate_notification_message_text_success(
             "Event Name starts on Tuesday, Nov 18, 2025 at 11:40:00!\n",
         ),
         (
+            schema.Occurrence(
+                event_id=uuid.uuid4(),
+                message_id=1,
+                created_at=now,
+            ),
             schema.Event(
                 chat_id=1,
                 name="Event Name",
@@ -110,6 +130,11 @@ async def test_occurrence_service_generate_notification_message_text_success(
             "Event Name starts on Monday, Nov 18 at 11:40:00!\nEvent Description\n",
         ),
         (
+            schema.Occurrence(
+                event_id=uuid.uuid4(),
+                message_id=1,
+                created_at=now,
+            ),
             schema.Event(
                 chat_id=1,
                 name="Event Name",
@@ -172,8 +197,9 @@ async def test_occurrence_service_generate_notification_message_text_success(
         ),
     ]
 
-    for event, chat, entries, expected in cases:
+    for occurrence, event, chat, entries, expected in cases:
         actual = service.occurrence.generate_notification_message_text(
+            occurrence=occurrence,
             event=event,
             chat=chat,
             entries=entries,
