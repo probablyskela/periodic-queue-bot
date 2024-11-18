@@ -105,31 +105,12 @@ async def occurrence_callback_handler(
         filter_=schema.EntryGetManyFilter(occurrence_id=occurrence.id),
     )
 
-    current_index = -1
-    for index, entry in enumerate(entries):
-        if entry.is_done is False and entry.is_skipping is False:
-            current_index = index
-            break
-
-    date = occurrence.created_at.astimezone(tz=pytz.timezone(zone=chat.timezone))
-
-    def decorize_entry(entry: schema.Entry, index: int) -> str:
-        skip = "🆗 " if entry.is_done else "⬇️ " if entry.is_skipping else ""
-        name = f"{entry.full_name}" + (f" (@{entry.username})" if entry.username else "")
-        curr = " ⬅️" if index == current_index else ""
-        return skip + name + curr
-
-    text = (
-        f"Event '{event.name}' starts on {date.strftime("%b %d %Y at %H:%M")}!\n"
-        + (f"{event.description}\n" if event.description else "")
-        + ("Current queue:\n" if len(entries) != 0 else "")
-        + "\n".join(
-            f"{index + 1}. {decorize_entry(entry, index)}" for index, entry in enumerate(entries)
-        )
-    )
-
     await bot.edit_message_text(
-        text=text,
+        text=service.occurrence.generate_notification_message_text(
+            event=event,
+            chat=chat,
+            entries=entries,
+        ),
         chat_id=chat.id,
         message_id=occurrence.message_id,
         reply_markup=build_occurrence_keyboard(occurrence_id=occurrence.id),

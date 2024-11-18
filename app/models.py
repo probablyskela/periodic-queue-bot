@@ -106,8 +106,8 @@ class Entry(Base):
     occurrence_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("occurrence.id", ondelete="CASCADE"),
     )
-    username: Mapped[str | None]
     full_name: Mapped[str]
+    username: Mapped[str | None]
     user_id: Mapped[int] = mapped_column(BIGINT)
     created_at: Mapped[datetime]
 

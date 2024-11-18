@@ -97,8 +97,8 @@ class OccurrenceGetFilter(typing.TypedDict, total=False):
 class Entry(BaseModel):
     id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     occurrence_id: uuid.UUID
-    username: str | None
     full_name: str
+    username: str | None
     user_id: int
     created_at: typing.Annotated[datetime, BeforeValidator(validate_date)]
     is_skipping: bool

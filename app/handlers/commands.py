@@ -51,7 +51,7 @@ async def configure_command_handler(
             configuration_raw=obj,
         )
     except Exception:
-        logger.exception("Failed to load configuration.")
+        logger.exception("failed to load configuration.")
         await message.reply("Failed to load configuration. Internal error.")
         return
 
