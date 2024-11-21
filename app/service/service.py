@@ -3,6 +3,7 @@ from datetime import datetime
 
 import numexpr
 import pytz
+from redis.asyncio import Redis as AsyncRedis
 
 from app import schema
 from app.config import config
@@ -15,12 +16,12 @@ from app.util import RelativeDelta
 
 
 class Service:
-    def __init__(self, repository: Repository) -> None:
+    def __init__(self, repository: Repository, redis: AsyncRedis) -> None:
         self._repository = repository
 
-        self.chat = ChatService(repository=repository)
-        self.event = EventService(repository=repository)
-        self.occurrence = OccurrenceService(repository=repository)
+        self.chat = ChatService(repository=repository, redis=redis)
+        self.event = EventService(repository=repository, redis=redis)
+        self.occurrence = OccurrenceService(repository=repository, redis=redis)
         self.entry = EntryService(repository=repository)
 
     async def load_configuration(

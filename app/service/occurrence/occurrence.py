@@ -1,17 +1,32 @@
 from datetime import datetime
+from functools import update_wrapper
 
 import pytz
+import ring
+from redis.asyncio import Redis as AsyncRedis
 
 from app import schema
+from app.config import config
 from app.repository import Repository
 
 
 class OccurrenceService:
-    def __init__(self, repository: Repository) -> None:
+    def __init__(self, repository: Repository, redis: AsyncRedis) -> None:
         self._repository = repository
+        self._redis = redis
+
+        self.get = update_wrapper(
+            ring.aioredis(
+                redis=redis,
+                coder="pickle",
+                expire=config.cache_ttl,
+            )(self.get),
+            self.get,
+        )
 
     async def upsert(self, occurrence: schema.Occurrence) -> None:
         await self._repository.occurrence.upsert(occurrence=occurrence)
+        await self.get.delete(filter_=schema.OccurrenceGetFilter(id=occurrence.id))
 
     async def get(self, filter_: schema.OccurrenceGetFilter) -> schema.Occurrence | None:
         return await self._repository.occurrence.get(filter_=filter_)

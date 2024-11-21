@@ -8,17 +8,8 @@ from app.repository import Repository
 async def test_chat_repository_upsert_insert_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
 ) -> None:
-    chat_id = 1
-    timezone = "Europe/Kyiv"
-    configuration = {"timezone": "Europe/Kyiv", "events": []}
-
-    chat = schema.Chat(
-        id=chat_id,
-        timezone=timezone,
-        config=configuration,
-    )
-
     await repository.chat.upsert(chat=chat)
 
     assert (
@@ -34,17 +25,8 @@ async def test_chat_repository_upsert_insert_success(
 async def test_chat_repository_upsert_update_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
 ) -> None:
-    chat_id = 1
-    timezone = "Europe/Kyiv"
-    configuration = {"timezone": "Europe/Kyiv", "events": []}
-
-    chat = schema.Chat(
-        id=chat_id,
-        timezone=timezone,
-        config=configuration,
-    )
-
     await repository.chat.upsert(chat=chat)
 
     assert (
@@ -70,13 +52,10 @@ async def test_chat_repository_upsert_update_success(
     ).scalar_one_or_none() is not None
 
 
-async def test_chat_repository_get_by_id_success(repository: Repository) -> None:
-    chat = schema.Chat(
-        id=1,
-        timezone="Europe/Kyiv",
-        config={"timezone": "Europe/Kyiv", "events": []},
-    )
-
+async def test_chat_repository_get_by_id_success(
+    repository: Repository,
+    chat: schema.Chat,
+) -> None:
     await repository.chat.upsert(chat=chat)
 
     new_chat = await repository.chat.get(filter_=schema.ChatGetFilter(id=chat.id))

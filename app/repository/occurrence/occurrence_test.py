@@ -1,6 +1,4 @@
-from datetime import datetime
 
-import pytz
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,13 +9,10 @@ from app.repository import Repository
 async def test_occurrence_repository_upsert_insert_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
 ) -> None:
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
-
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
 
@@ -38,13 +33,10 @@ async def test_occurrence_repository_upsert_insert_success(
 async def test_occurrence_repository_upsert_update_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
 ) -> None:
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
-
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
 
@@ -77,13 +69,12 @@ async def test_occurrence_repository_upsert_update_success(
     ).scalar_one_or_none() is not None
 
 
-async def test_occurrence_repository_get_success(repository: Repository) -> None:
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
-
+async def test_occurrence_repository_get_success(
+    repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
+) -> None:
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
 

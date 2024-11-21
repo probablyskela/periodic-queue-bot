@@ -1,5 +1,6 @@
 import pytest
 from pytest_mock import MockerFixture
+from redis.asyncio import Redis as AsyncRedis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repository import Repository
@@ -12,5 +13,5 @@ def repository(mocker: MockerFixture) -> Repository:
 
 
 @pytest.fixture
-def service(repository: Repository) -> Service:
-    return Service(repository=repository)
+def service(repository: Repository, redis: AsyncRedis) -> Service:
+    return Service(repository=repository, redis=redis)

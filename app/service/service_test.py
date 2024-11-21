@@ -12,8 +12,11 @@ from app.util import RelativeDelta
 
 
 @pytest.fixture
-def load_configuration_mocks(mocker: MockerFixture) -> None:
-    mocker.patch.object(tasks.send_notification_message_task, "apply_async")
+def load_configuration_mocks(mocker: MockerFixture, service: Service) -> None:
+    mocker.patch.object(tasks.send_notification_message_task, "apply_async", autospec=True)
+    mocker.patch.object(service.event, "delete", autospec=True)
+    mocker.patch.object(service.chat, "upsert", autospec=True)
+    mocker.patch.object(service.event, "upsert", autospec=True)
 
 
 async def test_service_load_configuration_success(
@@ -58,13 +61,6 @@ async def test_service_load_configuration_success(
     event_id = uuid.uuid4()
 
     mocker.patch.object(uuid, "uuid4", return_value=event_id)
-    spy_send_notification_message_task = mocker.patch.object(
-        tasks.send_notification_message_task,
-        "apply_async",
-    )
-    spy_service_event_delete = mocker.patch.object(service.event, "delete")
-    spy_service_chat_upsert = mocker.patch.object(service.chat, "upsert")
-    spy_service_event_upsert = mocker.patch.object(service.event, "upsert")
 
     await service.load_configuration(
         chat_id=chat_id,
@@ -72,17 +68,17 @@ async def test_service_load_configuration_success(
         configuration_raw=configuration_raw,
     )
 
-    spy_service_event_delete.assert_called_once_with(
+    service.event.delete.assert_called_once_with(
         filter_=schema.EventDeleteFilter(chat_id=chat_id),
     )
-    spy_service_chat_upsert.assert_called_once_with(
+    service.chat.upsert.assert_called_once_with(
         chat=schema.Chat(
             id=chat_id,
             timezone=timezone,
             config=configuration_raw,
         ),
     )
-    spy_send_notification_message_task.assert_has_calls(
+    tasks.send_notification_message_task.apply_async.assert_has_calls(
         [
             call(
                 kwargs={"event_id": str(event_id)},
@@ -90,7 +86,7 @@ async def test_service_load_configuration_success(
             ),
         ],
     )
-    spy_service_event_upsert.assert_called_once_with(
+    service.event.upsert.assert_called_once_with(
         event=schema.Event(
             id=event_id,
             chat_id=chat_id,

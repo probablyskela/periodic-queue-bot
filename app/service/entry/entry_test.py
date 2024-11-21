@@ -1,7 +1,5 @@
 import uuid
-from datetime import datetime
 
-import pytz
 from pytest_mock import MockerFixture
 
 from app import schema
@@ -13,52 +11,45 @@ async def test_entry_service_upsert_success(
     mocker: MockerFixture,
     service: Service,
     repository: Repository,
+    entry: schema.Entry,
 ) -> None:
-    spy_repository_entry_upsert = mocker.patch.object(repository.entry, "upsert")
-
-    entry = schema.Entry(
-        occurrence_id=uuid.uuid4(),
-        username=None,
-        full_name="Full Name",
-        user_id=1,
-        created_at=datetime.now(tz=pytz.utc),
-        is_skipping=False,
-        is_done=True,
-    )
+    mocker.patch.object(repository.entry, "upsert", autospec=True)
 
     await service.entry.upsert(entry=entry)
 
-    spy_repository_entry_upsert.assert_awaited_once_with(entry=entry)
+    repository.entry.upsert.assert_awaited_once_with(entry=entry)
 
 
 async def test_entry_service_get_by_occurrence_id_and_user_id_success(
     mocker: MockerFixture,
     service: Service,
     repository: Repository,
+    entry: schema.Entry,
 ) -> None:
-    spy_repository_entry_get = mocker.patch.object(repository.entry, "get")
+    mocker.patch.object(repository.entry, "get", return_value=entry, autospec=True)
 
     filter_ = schema.EntryGetFilter(occurrence_id=uuid.uuid4(), user_id=1)
 
-    entry = await service.entry.get(filter_=filter_)
+    result = await service.entry.get(filter_=filter_)
 
-    spy_repository_entry_get.assert_awaited_once_with(filter_=filter_)
-    assert entry == spy_repository_entry_get.return_value
+    repository.entry.get.assert_awaited_once_with(filter_=filter_)
+    assert entry == result
 
 
 async def test_entry_service_get_many_by_occurrence_id_success(
     mocker: MockerFixture,
     service: Service,
     repository: Repository,
+    entry: schema.Entry,
 ) -> None:
-    spy_repository_entry_get_many = mocker.patch.object(repository.entry, "get_many")
+    mocker.patch.object(repository.entry, "get_many", return_value=[entry], autospec=True)
 
     filter_ = schema.EntryGetManyFilter(occurrence_id=uuid.uuid4())
 
-    entries = await service.entry.get_many(filter_=filter_)
+    result = await service.entry.get_many(filter_=filter_)
 
-    spy_repository_entry_get_many.assert_awaited_once_with(filter_=filter_)
-    assert entries == spy_repository_entry_get_many.return_value
+    repository.entry.get_many.assert_awaited_once_with(filter_=filter_)
+    assert [entry] == result
 
 
 async def test_entry_service_delete_by_occurrence_id_and_user_id_success(
@@ -66,10 +57,10 @@ async def test_entry_service_delete_by_occurrence_id_and_user_id_success(
     service: Service,
     repository: Repository,
 ) -> None:
-    spy_repository_entry_delete = mocker.patch.object(repository.entry, "delete")
+    mocker.patch.object(repository.entry, "delete", autospec=True)
 
     filter_ = schema.EntryDeleteFilter(occurrence_id=uuid.uuid4(), user_id=1)
 
     await service.entry.delete(filter_=filter_)
 
-    spy_repository_entry_delete.assert_awaited_once_with(filter_=filter_)
+    repository.entry.delete.assert_awaited_once_with(filter_=filter_)
