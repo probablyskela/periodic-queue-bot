@@ -1,51 +1,20 @@
-from datetime import datetime
 from unittest.mock import call
 
 import pytest
-import pytz
 from pytest_mock import MockerFixture
 
 from app import schema
 from app.repository import Repository
 from app.service import Service
-from app.util import RelativeDelta
 
 
 async def test_event_service_upsert_success(
     mocker: MockerFixture,
     service: Service,
     repository: Repository,
+    event: schema.Event,
 ) -> None:
-    now = datetime.now(tz=pytz.utc)
-
     mocker.patch.object(repository.event, "upsert", autospec=True)
-
-    event = schema.Event(
-        chat_id=1,
-        name="Some event",
-        description="This event does occur",
-        initial_date=now - RelativeDelta(days=1),
-        next_date=now + RelativeDelta(days=1),
-        periodicity=schema.Period(
-            years="4",
-            months="n + t",
-            weeks="54",
-            days="1",
-            hours="t + 8 * n",
-            minutes="3",
-            seconds="10",
-        ),
-        offset=schema.Period(
-            years="14",
-            months="n * t",
-            weeks="4",
-            days="3",
-            hours="3 * t - n",
-            minutes="31",
-            seconds="30",
-        ),
-        times_occurred=10,
-    )
 
     await service.event.upsert(event=event)
 

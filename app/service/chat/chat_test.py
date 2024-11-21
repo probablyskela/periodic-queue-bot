@@ -12,14 +12,9 @@ async def test_chat_service_upsert_success(
     mocker: MockerFixture,
     service: Service,
     repository: Repository,
+    chat: schema.Chat,
 ) -> None:
     mocker.patch.object(repository.chat, "upsert", autospec=True)
-
-    chat = schema.Chat(
-        id=1,
-        timezone="Europe/Kyiv",
-        config={"timezone": "Europe/Kyiv", "events": []},
-    )
 
     await service.chat.upsert(chat=chat)
 

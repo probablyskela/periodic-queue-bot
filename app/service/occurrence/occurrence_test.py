@@ -16,14 +16,9 @@ async def test_occurrence_service_upsert_success(
     mocker: MockerFixture,
     service: Service,
     repository: Repository,
+    occurrence: schema.Occurrence,
 ) -> None:
     mocker.patch.object(repository.occurrence, "upsert", autospec=True)
-
-    occurrence = schema.Occurrence(
-        event_id=uuid.uuid4(),
-        message_id=1,
-        created_at=datetime.now(tz=pytz.utc),
-    )
 
     await service.occurrence.upsert(occurrence=occurrence)
 
@@ -33,7 +28,6 @@ async def test_occurrence_service_upsert_success(
 @pytest.fixture
 def occurrence_service_get_mocks(
     mocker: MockerFixture,
-    service: Service,
     repository: Repository,
     occurrence: schema.Occurrence,
 ) -> None:

@@ -13,22 +13,11 @@ from app.util import RelativeDelta
 async def test_entry_repository_upsert_insert_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
+    entry: schema.Entry,
 ) -> None:
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
-    entry = schema.Entry(
-        occurrence_id=occurrence.id,
-        username=None,
-        full_name="Me",
-        user_id=5,
-        created_at=now,
-        is_skipping=False,
-        is_done=True,
-    )
-
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
     await repository.occurrence.upsert(occurrence=occurrence)
@@ -54,22 +43,11 @@ async def test_entry_repository_upsert_insert_success(
 async def test_entry_repository_upsert_update_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
+    entry: schema.Entry,
 ) -> None:
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
-    entry = schema.Entry(
-        occurrence_id=occurrence.id,
-        username=None,
-        full_name="Me",
-        user_id=5,
-        created_at=now,
-        is_skipping=False,
-        is_done=True,
-    )
-
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
     await repository.occurrence.upsert(occurrence=occurrence)
@@ -91,7 +69,7 @@ async def test_entry_repository_upsert_update_success(
         )
     ).scalar_one_or_none() is not None
 
-    entry.is_skipping = True
+    entry.is_skipping = not entry.is_skipping
     await repository.entry.upsert(entry=entry)
 
     assert len((await db_session.execute(select(models.Entry))).scalars().all()) == 1
@@ -112,12 +90,13 @@ async def test_entry_repository_upsert_update_success(
     ).scalar_one_or_none() is not None
 
 
-async def test_entry_repository_get_many_success(repository: Repository) -> None:
+async def test_entry_repository_get_many_success(
+    repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
+) -> None:
     now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
 
     old_entry = schema.Entry(
         occurrence_id=occurrence.id,
@@ -152,24 +131,13 @@ async def test_entry_repository_get_many_success(repository: Repository) -> None
     assert entries == [old_entry, new_entry]
 
 
-async def test_entry_repository_get_success(repository: Repository) -> None:
-    now = datetime.now(tz=pytz.utc)
-    user_id = 5
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
-
-    entry = schema.Entry(
-        occurrence_id=occurrence.id,
-        username=None,
-        full_name="Me",
-        user_id=user_id,
-        created_at=now - RelativeDelta(days=10),
-        is_skipping=False,
-        is_done=False,
-    )
-
+async def test_entry_repository_get_success(
+    repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
+    entry: schema.Entry,
+) -> None:
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
     await repository.occurrence.upsert(occurrence=occurrence)
@@ -177,7 +145,10 @@ async def test_entry_repository_get_success(repository: Repository) -> None:
     await repository.entry.upsert(entry=entry)
 
     new_entry = await repository.entry.get(
-        filter_=schema.EntryGetFilter(occurrence_id=occurrence.id, user_id=user_id),
+        filter_=schema.EntryGetFilter(
+            occurrence_id=occurrence.id,
+            user_id=entry.user_id,
+        ),
     )
 
     assert new_entry == entry
@@ -192,13 +163,12 @@ async def test_entry_repository_get_success_none(repository: Repository) -> None
 async def test_entry_repository_delete_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+    occurrence: schema.Occurrence,
 ) -> None:
     now = datetime.now(tz=pytz.utc)
     user_id = 5
-
-    chat = schema.Chat(id=1, timezone="Europe/Kyiv", config={})
-    event = schema.Event(chat_id=chat.id, name="Event name", initial_date=now, next_date=now)
-    occurrence = schema.Occurrence(event_id=event.id, message_id=5, created_at=now)
 
     entry = schema.Entry(
         occurrence_id=occurrence.id,

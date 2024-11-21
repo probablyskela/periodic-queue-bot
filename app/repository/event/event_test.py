@@ -1,51 +1,18 @@
-import json
-from datetime import datetime
+import uuid
 
-import pytz
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models, schema
 from app.repository import Repository
-from app.util import RelativeDelta
 
 
 async def test_event_repository_upsert_insert_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
 ) -> None:
-    chat_id = 1
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=chat_id, timezone="Europe/Kyiv", config=json.loads("{}"))
-
-    event = schema.Event(
-        chat_id=chat_id,
-        name="Some event",
-        description="This event does occur",
-        initial_date=now - RelativeDelta(days=1),
-        next_date=now + RelativeDelta(days=1),
-        periodicity=schema.Period(
-            years="4",
-            months="n + t",
-            weeks="54",
-            days="1",
-            hours="t + 8 * n",
-            minutes="3",
-            seconds="10",
-        ),
-        offset=schema.Period(
-            years="14",
-            months="n * t",
-            weeks="4",
-            days="3",
-            hours="3 * t - n",
-            minutes="31",
-            seconds="30",
-        ),
-        times_occurred=10,
-    )
-
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
 
@@ -88,39 +55,9 @@ async def test_event_repository_upsert_insert_success(
 async def test_event_repository_upsert_update_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
 ) -> None:
-    chat_id = 1
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=chat_id, timezone="Europe/Kyiv", config=json.loads("{}"))
-
-    event = schema.Event(
-        chat_id=chat_id,
-        name="Some event",
-        description="This event does occur",
-        initial_date=now - RelativeDelta(days=1),
-        next_date=now + RelativeDelta(days=1),
-        periodicity=schema.Period(
-            years="4",
-            months="n + t",
-            weeks="54",
-            days="1",
-            hours="t + 8 * n",
-            minutes="3",
-            seconds="10",
-        ),
-        offset=schema.Period(
-            years="14",
-            months="n * t",
-            weeks="4",
-            days="3",
-            hours="3 * t - n",
-            minutes="31",
-            seconds="30",
-        ),
-        times_occurred=10,
-    )
-
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
 
@@ -201,39 +138,11 @@ async def test_event_repository_upsert_update_success(
     ).scalar_one_or_none() is not None
 
 
-async def test_event_repository_get_success(repository: Repository) -> None:
-    chat_id = 1
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=chat_id, timezone="Europe/Kyiv", config=json.loads("{}"))
-
-    event = schema.Event(
-        chat_id=chat_id,
-        name="Some event",
-        description="This event does occur",
-        initial_date=now - RelativeDelta(days=1),
-        next_date=now + RelativeDelta(days=1),
-        periodicity=schema.Period(
-            years="4",
-            months="n + t",
-            weeks="54",
-            days="1",
-            hours="t + 8 * n",
-            minutes="3",
-            seconds="10",
-        ),
-        offset=schema.Period(
-            years="14",
-            months="n * t",
-            weeks="4",
-            days="3",
-            hours="3 * t - n",
-            minutes="31",
-            seconds="30",
-        ),
-        times_occurred=10,
-    )
-
+async def test_event_repository_get_success(
+    repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
+) -> None:
     await repository.chat.upsert(chat=chat)
     await repository.event.upsert(event=event)
 
@@ -245,36 +154,27 @@ async def test_event_repository_get_success(repository: Repository) -> None:
 async def test_event_repository_delete_by_chat_id_success(
     db_session: AsyncSession,
     repository: Repository,
+    chat: schema.Chat,
+    event: schema.Event,
 ) -> None:
-    chat_id = 1
-    now = datetime.now(tz=pytz.utc)
-
-    chat = schema.Chat(id=chat_id, timezone="Europe/Kyiv", config=json.loads("{}"))
-
     await repository.chat.upsert(chat=chat)
-    await repository.event.upsert(
-        event=schema.Event(
-            chat_id=chat_id,
-            name="Some event",
-            initial_date=now - RelativeDelta(days=1),
-            next_date=now + RelativeDelta(days=1),
-        ),
-    )
+    await repository.event.upsert(event=event)
+    await repository.event.upsert(event=event.model_copy(update={"id": uuid.uuid4()}, deep=True))
 
     assert (
         len(
-            (await db_session.execute(select(models.Event).where(models.Event.chat_id == chat_id)))
+            (await db_session.execute(select(models.Event).where(models.Event.chat_id == chat.id)))
             .scalars()
             .all(),
         )
-        == 1
+        == 2
     )
 
-    await repository.event.delete(filter_=schema.EventDeleteFilter(chat_id=chat_id))
+    await repository.event.delete(filter_=schema.EventDeleteFilter(chat_id=chat.id))
 
     assert (
         len(
-            (await db_session.execute(select(models.Event).where(models.Event.chat_id == chat_id)))
+            (await db_session.execute(select(models.Event).where(models.Event.chat_id == chat.id)))
             .scalars()
             .all(),
         )

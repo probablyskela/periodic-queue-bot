@@ -106,16 +106,27 @@ def event(chat: schema.Chat) -> schema.Event:
         chat_id=chat.id,
         name="Event name",
         description="Event description",
-        initial_date=now,
-        next_date=now + RelativeDelta(weeks=1),
+        initial_date=now - RelativeDelta(days=1),
+        next_date=now + RelativeDelta(days=1),
         periodicity=schema.Period(
-            weeks="1",
+            years="4",
+            months="n + t",
+            weeks="54",
+            days="1",
+            hours="t + 8 * n",
+            minutes="3",
+            seconds="10",
         ),
         offset=schema.Period(
-            weeks="1",
-            minutes="10",
+            years="14",
+            months="n * t",
+            weeks="4",
+            days="3",
+            hours="3 * t - n",
+            minutes="31",
+            seconds="30",
         ),
-        times_occurred=1,
+        times_occurred=10,
     )
 
 
@@ -127,4 +138,19 @@ def occurrence(event: schema.Event) -> schema.Occurrence:
         event_id=event.id,
         message_id=1,
         created_at=now,
+    )
+
+
+@pytest.fixture
+def entry(occurrence: schema.Occurrence) -> schema.Entry:
+    now = datetime.now(tz=pytz.utc)
+
+    return schema.Entry(
+        occurrence_id=occurrence.id,
+        full_name="Full Name",
+        username="username",
+        user_id=1,
+        created_at=now,
+        is_skipping=False,
+        is_done=True,
     )
