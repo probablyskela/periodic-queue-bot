@@ -6,6 +6,7 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+      - redis
     volumes:
       - ../../:/app
 
@@ -52,6 +53,15 @@ services:
     <<: *pqbot
     command: celery -A app.tasks.tasks worker -l info
 
+  redis:
+    image: redis:7.4-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 30s
+      timeout: 1m
+    ports:
+      - 6379:6379
+
 volumes:
   postgres:
     driver:
@@ -60,5 +70,8 @@ volumes:
     driver:
       local
   rabbitmq:
+    driver:
+      local
+  redis:
     driver:
       local

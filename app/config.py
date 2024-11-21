@@ -23,6 +23,11 @@ class RabbitMQConfig(BaseModel):
     port: int
 
 
+class RedisConfig(BaseModel):
+    host: str
+    port: int
+
+
 def build_database_url(_: str, info: ValidationInfo) -> str:
     postgres: PostgresConfig = info.data["postgres"]
     database_url = MultiHostUrl.build(
@@ -66,6 +71,9 @@ class Config(BaseSettings):
 
     rabbitmq: RabbitMQConfig = Field(default=...)
     rabbitmq_url: typing.Annotated[str, AfterValidator(build_rabbitmq_url)] = ""
+
+    redis: RedisConfig = Field(default=...)
+    cache_ttl: int = RelativeDelta(minutes=5).s
 
 
 config = Config()
