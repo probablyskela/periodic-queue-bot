@@ -3,7 +3,9 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import BIGINT, JSON, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+from app import schema
 
 
 class Base(DeclarativeBase):
@@ -24,6 +26,13 @@ class Chat(Base):
             "timezone": self.timezone,
             "config": self.config,
         }
+
+    def to_schema(self) -> schema.Chat:
+        return schema.Chat(
+            id=self.id,
+            timezone=self.timezone,
+            config=self.config,
+        )
 
 
 class Event(Base):
@@ -56,6 +65,8 @@ class Event(Base):
 
     times_occurred: Mapped[int]
 
+    chat: Mapped[Chat] = relationship("Chat", lazy="joined")
+
     def to_dict(self) -> dict[str, typing.Any]:
         return {
             "id": self.id,
@@ -81,14 +92,45 @@ class Event(Base):
             "times_occurred": self.times_occurred,
         }
 
+    def to_schema(self) -> schema.Event:
+        return schema.Event(
+            id=self.id,
+            chat=self.chat.to_schema(),
+            name=self.name,
+            description=self.description,
+            initial_date=self.initial_date,
+            next_date=self.next_date,
+            offset=schema.Period(
+                years=self.offset_years,
+                months=self.offset_months,
+                weeks=self.offset_weeks,
+                days=self.offset_days,
+                hours=self.offset_hours,
+                minutes=self.offset_minutes,
+                seconds=self.offset_seconds,
+            ),
+            periodicity=schema.Period(
+                years=self.periodicity_years,
+                months=self.periodicity_months,
+                weeks=self.periodicity_weeks,
+                days=self.periodicity_days,
+                hours=self.periodicity_hours,
+                minutes=self.periodicity_minutes,
+                seconds=self.periodicity_seconds,
+            ),
+            times_occurred=self.times_occurred,
+        )
+
 
 class Occurrence(Base):
     __tablename__ = "occurrence"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
-    event_id: Mapped[uuid.UUID]
+    event_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("event.id", ondelete="CASCADE"))
     message_id: Mapped[int] = mapped_column(BIGINT)
     created_at: Mapped[datetime]
+
+    event: Mapped[Event] = relationship("Event", lazy="joined")
 
     def to_dict(self) -> dict[str, typing.Any]:
         return {
@@ -97,6 +139,14 @@ class Occurrence(Base):
             "message_id": self.message_id,
             "created_at": self.created_at,
         }
+
+    def to_schema(self) -> schema.Occurrence:
+        return schema.Occurrence(
+            id=self.id,
+            event=self.event.to_schema(),
+            message_id=self.message_id,
+            created_at=self.created_at,
+        )
 
 
 class Entry(Base):
@@ -125,3 +175,15 @@ class Entry(Base):
             "is_done": self.is_done,
             "created_at": self.created_at,
         }
+
+    def to_schema(self) -> schema.Entry:
+        return schema.Entry(
+            id=self.id,
+            occurrence_id=self.occurrence_id,
+            username=self.username,
+            full_name=self.full_name,
+            user_id=self.user_id,
+            created_at=self.created_at,
+            is_skipping=self.is_skipping,
+            is_done=self.is_done,
+        )

@@ -44,7 +44,7 @@ class Service:
 
         for event_input in configuration.events:
             event = schema.Event(
-                chat_id=chat_id,
+                chat=chat,
                 name=event_input.name,
                 description=event_input.description,
                 initial_date=event_input.initial_date,

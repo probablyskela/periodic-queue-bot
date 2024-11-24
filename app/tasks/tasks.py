@@ -34,28 +34,16 @@ async def send_notification_message(event_id: str) -> None:
             )
             return
 
-        chat = await service.chat.get(filter_=schema.ChatGetFilter(id=event.chat_id))
-        if chat is None:
-            logger.warning(
-                "can't send notification message: chat with id: %s not found.",
-                str(event.chat_id),
-            )
-            return
-
         occurrence = schema.Occurrence(
-            event_id=event.id,
+            event=event,
             message_id=-1,
             created_at=event.next_date,
         )
 
         async with aiogram.Bot(token=config.token) as bot:
             message = await bot.send_message(
-                chat_id=chat.id,
-                text=service.occurrence.generate_notification_message_text(
-                    occurrence=occurrence,
-                    event=event,
-                    chat=chat,
-                ),
+                chat_id=event.chat.id,
+                text=service.occurrence.generate_notification_message_text(occurrence=occurrence),
                 reply_markup=build_occurrence_keyboard(occurrence_id=occurrence.id),
             )
 
@@ -106,35 +94,19 @@ async def resend_notification_message(occurrence_id: str) -> None:
             )
             return
 
-        event = await service.event.get(filter_=schema.EventGetFilter(id=occurrence.event_id))
-        if event is None:
-            logger.warning(
-                "can't resend notification message: event with id: %s not found.",
-                str(occurrence.event_id),
-            )
-            return
-
-        chat = await service.chat.get(filter_=schema.ChatGetFilter(id=event.chat_id))
-        if chat is None:
-            logger.warning(
-                "can't resend notification message: chat with id: %d not found.",
-                str(event.chat_id),
-            )
-            return
-
         entries = await service.entry.get_many(
             filter_=schema.EntryGetManyFilter(occurrence_id=occurrence.id),
         )
 
         async with aiogram.Bot(token=config.token) as bot:
-            await bot.delete_message(chat_id=chat.id, message_id=occurrence.message_id)
+            await bot.delete_message(
+                chat_id=occurrence.event.chat.id, message_id=occurrence.message_id,
+            )
 
             message = await bot.send_message(
-                chat_id=chat.id,
+                chat_id=occurrence.event.chat.id,
                 text=service.occurrence.generate_notification_message_text(
                     occurrence=occurrence,
-                    event=event,
-                    chat=chat,
                     entries=entries,
                 ),
                 reply_markup=build_occurrence_keyboard(occurrence_id=occurrence.id),

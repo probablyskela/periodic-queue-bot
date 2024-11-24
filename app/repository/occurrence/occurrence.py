@@ -28,22 +28,13 @@ class OccurrenceRepository:
             stmt = stmt.where(models.Occurrence.id == id_)
 
         occurrence = (await self._session.execute(stmt)).scalar_one_or_none()
-        return self._map_occurrence_model_to_schema(occurrence=occurrence) if occurrence else None
+        return occurrence.to_schema() if occurrence else None
 
     @staticmethod
     def _map_occurrence_schema_to_model(occurrence: schema.Occurrence) -> models.Occurrence:
         return models.Occurrence(
             id=occurrence.id,
-            event_id=occurrence.event_id,
+            event_id=occurrence.event.id,
             message_id=occurrence.message_id,
             created_at=occurrence.created_at.replace(tzinfo=None),
-        )
-
-    @staticmethod
-    def _map_occurrence_model_to_schema(occurrence: models.Occurrence) -> schema.Occurrence:
-        return schema.Occurrence(
-            id=occurrence.id,
-            event_id=occurrence.event_id,
-            message_id=occurrence.message_id,
-            created_at=occurrence.created_at,
         )

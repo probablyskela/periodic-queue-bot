@@ -26,19 +26,11 @@ class ChatRepository:
             stmt = stmt.where(models.Chat.id == id_)
 
         chat = (await self._session.execute(stmt)).scalar_one_or_none()
-        return self._map_chat_model_to_schema(chat=chat) if chat else None
+        return chat.to_schema() if chat else None
 
     @staticmethod
     def _map_chat_schema_to_model(chat: schema.Chat) -> models.Chat:
         return models.Chat(
-            id=chat.id,
-            timezone=chat.timezone,
-            config=chat.config,
-        )
-
-    @staticmethod
-    def _map_chat_model_to_schema(chat: models.Chat) -> schema.Chat:
-        return schema.Chat(
             id=chat.id,
             timezone=chat.timezone,
             config=chat.config,

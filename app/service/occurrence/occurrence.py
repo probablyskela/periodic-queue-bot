@@ -34,11 +34,11 @@ class OccurrenceService:
     def generate_notification_message_text(
         self,
         occurrence: schema.Occurrence,
-        event: schema.Event,
-        chat: schema.Chat,
         entries: list[schema.Entry] | None = None,
     ) -> str:
         entries = entries or []
+
+        event, chat = occurrence.event, occurrence.event.chat
 
         current_index = -1
         for index, entry in enumerate(entries):

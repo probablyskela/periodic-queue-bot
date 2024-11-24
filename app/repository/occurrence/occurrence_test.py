@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +21,7 @@ async def test_occurrence_repository_upsert_insert_success(
         await db_session.execute(
             select(models.Occurrence).where(
                 models.Occurrence.id == occurrence.id,
-                models.Occurrence.event_id == occurrence.event_id,
+                models.Occurrence.event_id == occurrence.event.id,
                 models.Occurrence.message_id == occurrence.message_id,
                 models.Occurrence.created_at == occurrence.created_at.replace(tzinfo=None),
             ),
@@ -46,7 +45,7 @@ async def test_occurrence_repository_upsert_update_success(
         await db_session.execute(
             select(models.Occurrence).where(
                 models.Occurrence.id == occurrence.id,
-                models.Occurrence.event_id == occurrence.event_id,
+                models.Occurrence.event_id == occurrence.event.id,
                 models.Occurrence.message_id == occurrence.message_id,
                 models.Occurrence.created_at == occurrence.created_at.replace(tzinfo=None),
             ),
@@ -61,7 +60,7 @@ async def test_occurrence_repository_upsert_update_success(
         await db_session.execute(
             select(models.Occurrence).where(
                 models.Occurrence.id == occurrence.id,
-                models.Occurrence.event_id == occurrence.event_id,
+                models.Occurrence.event_id == occurrence.event.id,
                 models.Occurrence.message_id == occurrence.message_id,
                 models.Occurrence.created_at == occurrence.created_at.replace(tzinfo=None),
             ),

@@ -103,7 +103,7 @@ def event(chat: schema.Chat) -> schema.Event:
     now = datetime.now(tz=pytz.utc)
 
     return schema.Event(
-        chat_id=chat.id,
+        chat=chat,
         name="Event name",
         description="Event description",
         initial_date=now - RelativeDelta(days=1),
@@ -135,7 +135,7 @@ def occurrence(event: schema.Event) -> schema.Occurrence:
     now = datetime.now(tz=pytz.utc)
 
     return schema.Occurrence(
-        event_id=event.id,
+        event=event,
         message_id=1,
         created_at=now,
     )

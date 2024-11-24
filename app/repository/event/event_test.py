@@ -20,7 +20,7 @@ async def test_event_repository_upsert_insert_success(
         await db_session.execute(
             select(models.Event).where(
                 models.Event.id == event.id,
-                models.Event.chat_id == event.chat_id,
+                models.Event.chat_id == event.chat.id,
                 models.Event.name == event.name,
                 models.Event.description == event.description,
                 models.Event.initial_date == event.initial_date.replace(tzinfo=None),
@@ -65,7 +65,7 @@ async def test_event_repository_upsert_update_success(
         await db_session.execute(
             select(models.Event).where(
                 models.Event.id == event.id,
-                models.Event.chat_id == event.chat_id,
+                models.Event.chat_id == event.chat.id,
                 models.Event.name == event.name,
                 models.Event.description == event.description,
                 models.Event.initial_date == event.initial_date.replace(tzinfo=None),
@@ -106,7 +106,7 @@ async def test_event_repository_upsert_update_success(
         await db_session.execute(
             select(models.Event).where(
                 models.Event.id == event.id,
-                models.Event.chat_id == event.chat_id,
+                models.Event.chat_id == event.chat.id,
                 models.Event.name == event.name,
                 models.Event.description == event.description,
                 models.Event.initial_date == event.initial_date.replace(tzinfo=None),

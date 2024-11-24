@@ -65,7 +65,7 @@ class ChatGetFilter(typing.TypedDict, total=False):
 
 class Event(BaseModel):
     id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
-    chat_id: int
+    chat: Chat
     name: str
     description: str | None = None
     initial_date: typing.Annotated[datetime, BeforeValidator(validate_date)]
@@ -85,7 +85,7 @@ class EventDeleteFilter(typing.TypedDict, total=False):
 
 class Occurrence(BaseModel):
     id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
-    event_id: uuid.UUID
+    event: Event
     message_id: int
     created_at: typing.Annotated[datetime, BeforeValidator(validate_date)]
 
