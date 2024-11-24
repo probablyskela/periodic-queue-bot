@@ -91,16 +91,6 @@ async def occurrence_callback_handler(
             entry.is_done = True
             await service.entry.upsert(entry=entry)
 
-    event = await service.event.get(filter_=schema.EventGetFilter(id=occurrence.event_id))
-    if event is None:
-        await callback.answer(text="Internal Error.")
-        return
-
-    chat = await service.chat.get(filter_=schema.ChatGetFilter(id=event.chat_id))
-    if chat is None:
-        await callback.answer(text="Internal Error.")
-        return
-
     entries = await service.entry.get_many(
         filter_=schema.EntryGetManyFilter(occurrence_id=occurrence.id),
     )
@@ -108,11 +98,9 @@ async def occurrence_callback_handler(
     await bot.edit_message_text(
         text=service.occurrence.generate_notification_message_text(
             occurrence=occurrence,
-            event=event,
-            chat=chat,
             entries=entries,
         ),
-        chat_id=chat.id,
+        chat_id=occurrence.event.chat.id,
         message_id=occurrence.message_id,
         reply_markup=build_occurrence_keyboard(occurrence_id=occurrence.id),
     )

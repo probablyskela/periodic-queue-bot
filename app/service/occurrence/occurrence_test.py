@@ -93,107 +93,99 @@ async def test_occurrence_service_get_by_id_cache_delete_on_upsert_success(
 
 async def test_occurrence_service_generate_notification_message_text_success(
     service: Service,
+    chat: schema.Chat,
+    event: schema.Event,
 ) -> None:
     now = datetime(year=2024, month=11, day=18, hour=9, minute=40, second=0, tzinfo=pytz.utc)
     cases = [
         (
             schema.Occurrence(
-                event_id=uuid.uuid4(),
+                event=schema.Event(
+                    chat=schema.Chat(
+                        id=1,
+                        timezone="Etc/UTC",
+                        config={},
+                    ),
+                    name="Event Name",
+                    initial_date=now,
+                    next_date=now,
+                ),
                 message_id=1,
                 created_at=now,
-            ),
-            schema.Event(
-                chat_id=1,
-                name="Event Name",
-                initial_date=now,
-                next_date=now,
-            ),
-            schema.Chat(
-                id=1,
-                timezone="Etc/UTC",
-                config={},
             ),
             None,
             "Event Name starts on Monday, Nov 18 at 09:40:00!\n",
         ),
         (
             schema.Occurrence(
-                event_id=uuid.uuid4(),
+                event=schema.Event(
+                    chat=schema.Chat(
+                        id=1,
+                        timezone="Europe/Kyiv",
+                        config={},
+                    ),
+                    name="Event Name",
+                    initial_date=now,
+                    next_date=now + RelativeDelta(months=1),
+                ),
                 message_id=1,
                 created_at=now + RelativeDelta(months=1),
-            ),
-            schema.Event(
-                chat_id=1,
-                name="Event Name",
-                initial_date=now,
-                next_date=now + RelativeDelta(months=1),
-            ),
-            schema.Chat(
-                id=1,
-                timezone="Europe/Kyiv",
-                config={},
             ),
             None,
             "Event Name starts on Wednesday, Dec 18 at 11:40:00!\n",
         ),
         (
             schema.Occurrence(
-                event_id=uuid.uuid4(),
+                event=schema.Event(
+                    chat=schema.Chat(
+                        id=1,
+                        timezone="Europe/Kyiv",
+                        config={},
+                    ),
+                    name="Event Name",
+                    initial_date=now,
+                    next_date=now + RelativeDelta(months=12),
+                ),
                 message_id=1,
                 created_at=now + RelativeDelta(months=12),
-            ),
-            schema.Event(
-                chat_id=1,
-                name="Event Name",
-                initial_date=now,
-                next_date=now + RelativeDelta(months=12),
-            ),
-            schema.Chat(
-                id=1,
-                timezone="Europe/Kyiv",
-                config={},
             ),
             None,
             "Event Name starts on Tuesday, Nov 18, 2025 at 11:40:00!\n",
         ),
         (
             schema.Occurrence(
-                event_id=uuid.uuid4(),
+                event=schema.Event(
+                    chat=schema.Chat(
+                        id=1,
+                        timezone="Europe/Kyiv",
+                        config={},
+                    ),
+                    name="Event Name",
+                    description="Event Description",
+                    initial_date=now,
+                    next_date=now,
+                ),
                 message_id=1,
                 created_at=now,
-            ),
-            schema.Event(
-                chat_id=1,
-                name="Event Name",
-                description="Event Description",
-                initial_date=now,
-                next_date=now,
-            ),
-            schema.Chat(
-                id=1,
-                timezone="Europe/Kyiv",
-                config={},
             ),
             None,
             "Event Name starts on Monday, Nov 18 at 11:40:00!\nEvent Description\n",
         ),
         (
             schema.Occurrence(
-                event_id=uuid.uuid4(),
+                event=schema.Event(
+                    chat=schema.Chat(
+                        id=1,
+                        timezone="Europe/Kyiv",
+                        config={},
+                    ),
+                    name="Event Name",
+                    description="Event Description",
+                    initial_date=now,
+                    next_date=now,
+                ),
                 message_id=1,
                 created_at=now,
-            ),
-            schema.Event(
-                chat_id=1,
-                name="Event Name",
-                description="Event Description",
-                initial_date=now,
-                next_date=now,
-            ),
-            schema.Chat(
-                id=1,
-                timezone="Europe/Kyiv",
-                config={},
             ),
             [
                 schema.Entry(
@@ -245,11 +237,9 @@ async def test_occurrence_service_generate_notification_message_text_success(
         ),
     ]
 
-    for occurrence, event, chat, entries, expected in cases:
+    for occurrence, entries, expected in cases:
         actual = service.occurrence.generate_notification_message_text(
             occurrence=occurrence,
-            event=event,
-            chat=chat,
             entries=entries,
         )
         assert expected == actual

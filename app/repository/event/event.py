@@ -26,7 +26,7 @@ class EventRepository:
             stmt = stmt.where(models.Event.id == id_)
 
         event = (await self._session.execute(stmt)).scalar_one_or_none()
-        return self._map_event_model_to_schema(event=event) if event else None
+        return event.to_schema() if event else None
 
     async def delete(self, filter_: schema.EventDeleteFilter) -> None:
         stmt = delete(models.Event)
@@ -41,7 +41,7 @@ class EventRepository:
     def _map_event_schema_to_model(event: schema.Event) -> models.Event:
         return models.Event(
             id=event.id,
-            chat_id=event.chat_id,
+            chat_id=event.chat.id,
             name=event.name,
             description=event.description,
             initial_date=event.initial_date.replace(tzinfo=None),
@@ -60,35 +60,5 @@ class EventRepository:
             periodicity_hours=event.periodicity.hours if event.periodicity else None,
             periodicity_minutes=event.periodicity.minutes if event.periodicity else None,
             periodicity_seconds=event.periodicity.seconds if event.periodicity else None,
-            times_occurred=event.times_occurred,
-        )
-
-    @staticmethod
-    def _map_event_model_to_schema(event: models.Event) -> schema.Event:
-        return schema.Event(
-            id=event.id,
-            chat_id=event.chat_id,
-            name=event.name,
-            description=event.description,
-            initial_date=event.initial_date,
-            next_date=event.next_date,
-            offset=schema.Period(
-                years=event.offset_years,
-                months=event.offset_months,
-                weeks=event.offset_weeks,
-                days=event.offset_days,
-                hours=event.offset_hours,
-                minutes=event.offset_minutes,
-                seconds=event.offset_seconds,
-            ),
-            periodicity=schema.Period(
-                years=event.periodicity_years,
-                months=event.periodicity_months,
-                weeks=event.periodicity_weeks,
-                days=event.periodicity_days,
-                hours=event.periodicity_hours,
-                minutes=event.periodicity_minutes,
-                seconds=event.periodicity_seconds,
-            ),
             times_occurred=event.times_occurred,
         )

@@ -26,8 +26,22 @@ async def test_service_load_configuration_success(
 ) -> None:
     now = datetime.now(tz=pytz.utc)
 
-    timezone = pytz.timezone("Europe/Kyiv").zone or ""
     chat_id = 1234
+    timezone = pytz.timezone("Europe/Kyiv").zone or ""
+    configuration_raw = {
+        "timezone": "Europe/Kyiv",
+        "events": [
+            {
+                "name": "good event",
+                "initial_date": "03-10-2024 16:00:00 +0200",
+            },
+        ],
+    }
+    chat = schema.Chat(
+        id=chat_id,
+        timezone=timezone,
+        config=configuration_raw,
+    )
 
     good_event = schema.EventInput(
         name="good name",
@@ -48,16 +62,6 @@ async def test_service_load_configuration_success(
         ],
     )
 
-    configuration_raw = {
-        "timezone": "Europe/Kyiv",
-        "events": [
-            {
-                "name": "good event",
-                "initial_date": "03-10-2024 16:00:00 +0200",
-            },
-        ],
-    }
-
     event_id = uuid.uuid4()
 
     mocker.patch.object(uuid, "uuid4", return_value=event_id)
@@ -71,13 +75,7 @@ async def test_service_load_configuration_success(
     service.event.delete.assert_called_once_with(
         filter_=schema.EventDeleteFilter(chat_id=chat_id),
     )
-    service.chat.upsert.assert_called_once_with(
-        chat=schema.Chat(
-            id=chat_id,
-            timezone=timezone,
-            config=configuration_raw,
-        ),
-    )
+    service.chat.upsert.assert_called_once_with(chat=chat)
     tasks.send_notification_message_task.apply_async.assert_has_calls(
         [
             call(
@@ -89,7 +87,7 @@ async def test_service_load_configuration_success(
     service.event.upsert.assert_called_once_with(
         event=schema.Event(
             id=event_id,
-            chat_id=chat_id,
+            chat=chat,
             name=good_event.name,
             initial_date=good_event.initial_date,
             next_date=good_event.initial_date,
@@ -98,7 +96,7 @@ async def test_service_load_configuration_success(
     )
 
 
-def test_service_update_event_next_date(service: Service) -> None:
+def test_service_update_event_next_date(service: Service, chat: schema.Chat) -> None:
     now = datetime.now(tz=pytz.utc)
     event_id = uuid.uuid4()
 
@@ -106,7 +104,7 @@ def test_service_update_event_next_date(service: Service) -> None:
         (
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now,
                 next_date=now + RelativeDelta(minutes=10),
@@ -114,7 +112,7 @@ def test_service_update_event_next_date(service: Service) -> None:
             ),
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now,
                 next_date=now + RelativeDelta(minutes=10),
@@ -124,7 +122,7 @@ def test_service_update_event_next_date(service: Service) -> None:
         (
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now,
                 next_date=now - RelativeDelta(minutes=10),
@@ -135,7 +133,7 @@ def test_service_update_event_next_date(service: Service) -> None:
         (
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now,
                 next_date=now,
@@ -146,7 +144,7 @@ def test_service_update_event_next_date(service: Service) -> None:
         (
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now,
                 next_date=now + RelativeDelta(minutes=2),
@@ -158,7 +156,7 @@ def test_service_update_event_next_date(service: Service) -> None:
         (
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now - RelativeDelta(minutes=10),
                 next_date=now - RelativeDelta(minutes=10),
@@ -167,7 +165,7 @@ def test_service_update_event_next_date(service: Service) -> None:
             ),
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now - RelativeDelta(minutes=10),
                 next_date=now + RelativeDelta(minutes=5),
@@ -178,7 +176,7 @@ def test_service_update_event_next_date(service: Service) -> None:
         (
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now - RelativeDelta(minutes=10),
                 next_date=now - RelativeDelta(minutes=10),
@@ -188,7 +186,7 @@ def test_service_update_event_next_date(service: Service) -> None:
             ),
             schema.Event(
                 id=event_id,
-                chat_id=0,
+                chat=chat,
                 name="Test",
                 initial_date=now - RelativeDelta(minutes=10),
                 next_date=now + RelativeDelta(minutes=20),
@@ -204,13 +202,13 @@ def test_service_update_event_next_date(service: Service) -> None:
         assert expected == actual
 
 
-def test_service_evaluate_event_periodicity(service: Service) -> None:
+def test_service_evaluate_event_periodicity(service: Service, chat: schema.Chat) -> None:
     now = datetime.now(tz=pytz.utc)
 
     cases = [
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -221,7 +219,7 @@ def test_service_evaluate_event_periodicity(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -232,7 +230,7 @@ def test_service_evaluate_event_periodicity(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -243,7 +241,7 @@ def test_service_evaluate_event_periodicity(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -254,7 +252,7 @@ def test_service_evaluate_event_periodicity(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -270,13 +268,13 @@ def test_service_evaluate_event_periodicity(service: Service) -> None:
         assert expected == actual
 
 
-def test_service_evaluate_event_offset(service: Service) -> None:
+def test_service_evaluate_event_offset(service: Service, chat: schema.Chat) -> None:
     now = datetime.now(tz=pytz.utc)
 
     cases = [
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -287,7 +285,7 @@ def test_service_evaluate_event_offset(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -298,7 +296,7 @@ def test_service_evaluate_event_offset(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -309,7 +307,7 @@ def test_service_evaluate_event_offset(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
@@ -320,7 +318,7 @@ def test_service_evaluate_event_offset(service: Service) -> None:
         ),
         (
             schema.Event(
-                chat_id=0,
+                chat=chat,
                 name="",
                 initial_date=now,
                 next_date=now,
