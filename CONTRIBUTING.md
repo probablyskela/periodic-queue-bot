@@ -29,7 +29,6 @@ Current tasks:
 * Consider using APScheduler instead of Celery.
 * Allow modifying event parameters without overwriting other settings.
 * Allow exporting chat config (it's already being saved in database so should be easy).
-* Add caching to service layer.
 * Refactor handlers layer.
 * General refactoring.
 * Rename app folder to bot.

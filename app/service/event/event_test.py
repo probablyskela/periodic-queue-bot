@@ -27,7 +27,12 @@ def event_service_get_mocks(
     repository: Repository,
     event: schema.Event,
 ) -> None:
-    mocker.patch.object(repository.event, "get", return_value=event, autospec=True)
+    mocker.patch.object(
+        repository.event,
+        "get",
+        return_value=event.model_copy(deep=True),
+        autospec=True,
+    )
     mocker.patch.object(repository.event, "upsert", autospec=True)
 
 

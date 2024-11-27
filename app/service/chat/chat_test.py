@@ -27,7 +27,12 @@ def chat_service_get_mocks(
     repository: Repository,
     chat: schema.Chat,
 ) -> None:
-    mocker.patch.object(repository.chat, "get", return_value=chat, autospec=True)
+    mocker.patch.object(
+        repository.chat,
+        "get",
+        return_value=chat.model_copy(deep=True),
+        autospec=True,
+    )
     mocker.patch.object(repository.chat, "upsert", autospec=True)
 
 

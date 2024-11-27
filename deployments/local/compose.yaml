@@ -51,7 +51,7 @@ services:
 
   celery:
     <<: *pqbot
-    command: celery -A app.tasks.tasks worker -l info
+    command: celery -A app.tasks.celery worker -l info
 
   redis:
     image: redis:7.4-alpine

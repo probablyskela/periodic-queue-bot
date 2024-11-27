@@ -31,7 +31,12 @@ def occurrence_service_get_mocks(
     repository: Repository,
     occurrence: schema.Occurrence,
 ) -> None:
-    mocker.patch.object(repository.occurrence, "get", return_value=occurrence, autospec=True)
+    mocker.patch.object(
+        repository.occurrence,
+        "get",
+        return_value=occurrence.model_copy(deep=True),
+        autospec=True,
+    )
     mocker.patch.object(repository.occurrence, "upsert", autospec=True)
 
 

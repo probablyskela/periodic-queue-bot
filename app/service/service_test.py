@@ -79,7 +79,7 @@ async def test_service_load_configuration_success(
     tasks.send_notification_message_task.apply_async.assert_has_calls(
         [
             call(
-                kwargs={"event_id": str(event_id)},
+                kwargs={"event_id": event_id},
                 eta=good_event.initial_date - RelativeDelta(days=1),
             ),
         ],

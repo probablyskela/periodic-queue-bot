@@ -26,7 +26,12 @@ async def test_entry_service_get_by_occurrence_id_and_user_id_success(
     repository: Repository,
     entry: schema.Entry,
 ) -> None:
-    mocker.patch.object(repository.entry, "get", return_value=entry, autospec=True)
+    mocker.patch.object(
+        repository.entry,
+        "get",
+        return_value=entry.model_copy(deep=True),
+        autospec=True,
+    )
 
     filter_ = schema.EntryGetFilter(occurrence_id=uuid.uuid4(), user_id=1)
 
@@ -42,7 +47,12 @@ async def test_entry_service_get_many_by_occurrence_id_success(
     repository: Repository,
     entry: schema.Entry,
 ) -> None:
-    mocker.patch.object(repository.entry, "get_many", return_value=[entry], autospec=True)
+    mocker.patch.object(
+        repository.entry,
+        "get_many",
+        return_value=[entry.model_copy(deep=True)],
+        autospec=True,
+    )
 
     filter_ = schema.EntryGetManyFilter(occurrence_id=uuid.uuid4())
 

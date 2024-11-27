@@ -1,4 +1,4 @@
-from .util import RelativeDelta
+from app.util import RelativeDelta
 
 
 def test_RelativeDelta() -> None:
