@@ -58,7 +58,7 @@ class Service:
                 continue
 
             tasks.send_notification_message_task.apply_async(
-                kwargs={"event_id": str(event.id)},
+                kwargs={"event_id": event.id},
                 eta=event.next_date - self.evaluate_event_offset(event=event),
             )
 

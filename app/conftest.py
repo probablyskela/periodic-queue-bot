@@ -132,12 +132,10 @@ def event(chat: schema.Chat) -> schema.Event:
 
 @pytest.fixture
 def occurrence(event: schema.Event) -> schema.Occurrence:
-    now = datetime.now(tz=pytz.utc)
-
     return schema.Occurrence(
         event=event,
         message_id=1,
-        created_at=now,
+        created_at=event.next_date,
     )
 
 
