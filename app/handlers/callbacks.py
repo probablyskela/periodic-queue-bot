@@ -83,12 +83,8 @@ async def occurrence_callback_handler(
                 await callback.answer(text="You are not in the queue.")
                 return
 
-            if entry.is_done is True:
-                await callback.answer(text="You are already done.")
-                return
-
             entry.is_skipping = False
-            entry.is_done = True
+            entry.is_done = not entry.is_done
             await service.entry.upsert(entry=entry)
 
     entries = await service.entry.get_many(

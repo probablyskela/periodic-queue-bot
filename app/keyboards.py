@@ -30,7 +30,7 @@ def build_occurrence_keyboard(occurrence_id: uuid.UUID) -> aiogram.types.InlineK
         ),
     )
     builder.button(
-        text="Done",
+        text="Done / Undone",
         callback_data=callbacks.OccurrenceCallbackFactory(
             action=callbacks.OccurrenceActionEnum.DONE,
             occurrence_id=occurrence_id,
