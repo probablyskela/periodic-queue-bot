@@ -8,7 +8,7 @@ You will need `docker` to be installed on your system.
 See: https://docs.docker.com/engine/install/
 
 ## Configuration
-You can configure the bot by using `/configure` comand and attaching configration file.
+You can configure the bot by using `/configure` comand and attaching configuration file.
 ![Bot configuration example](assets/images/configure_command_example.jpg "Bot configuration example")
 Example of a configuration file:
 ```
@@ -38,7 +38,7 @@ Example of a configuration file:
 }
 ```
 Fields:
-- `timezone`: Optional field. If timezone is specified, bot will send messages with timezone aware datetimes. Defaults to `Etc/UTC`. You can find the list of available values [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) in column `TZ identifier`.
+- `timezone`: Optional field. If timezone is specified, bot will send messages with timezone aware datetimes. Defaults to `Etc/UTC`. You can find the list of available values [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) in column `TZ identifier`.
 - `events`: List of events.
 
 Each `events` object has fields:
@@ -135,7 +135,8 @@ Quickstart:
     git clone https://github.com/probablyskela/periodic-queue-bot.git
     ```
 2. Create a new bot using [@BotFather](https://telegram.me/BotFather) to get a token.
-3. Create `dev.env` file in `deployments/local/env_files` and fill it according to `example.env`. For `TOKEN` use token that you got from BotFather.
+3. Create `dev.env` file at `deployments/local/env_files` and fill it according to `example.env`. For `TOKEN` use token that you've got from `BotFather`. Don't change any other values if you're not sure what you're doing.
+
 4. Run command
     ```
     make rebuild
@@ -143,13 +144,13 @@ Quickstart:
     This will build bot image and run all needed containers using docker compose.
 5. Create and migrate the database by running the commands:
     ```
-    docker compose -f deployments/local/compose.yaml -p pqbot exec postgres sh
+    make sh
+    postgres
     psql -U postgres
-    CREATE DATABASE <database-name>;
+    CREATE DATABASE db_name;
     \q
     exit
     make migrate
     ```
-    `<database-name>` should be equal to the value of `POSTGRES__PATH` in your `dev.env` file.
-6. Configure the bot
-7. Use the bot
+6. Configure the bot using configuration file.
+7. Use the bot.

@@ -9,10 +9,10 @@ Also that would be nice if you test your code. You can run tests using following
 make test
 ```
 
-If you want to add a feature create a new branch and then create a pull request to dev branch.
+If you want to contribute - create a new branch and then create a pull request to dev branch.
 Basic rules for branch names:
 1. Lowercase and hyphen-separated.
-2. Only use alphanumeric characters (a-z, 0-9).
+2. Only use alphanumeric characters (`a-z`, `0-9`) and `/`.
 3. Be as descriptive as possible
 4. Use prefixes:
     1. Feature branches: `feat/<branch-name>`
