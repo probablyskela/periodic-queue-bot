@@ -4,13 +4,13 @@ WORKDIR /code/
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 
 RUN pip install uv
 
 COPY uv.lock pyproject.toml /code/
-RUN uv sync --frozen --no-install-project
+RUN uv sync
 
 COPY . /code/
 
-ENV PATH="/app/.venv/bin:$PATH"
 CMD ["python", "-m", "app.main"]
