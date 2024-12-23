@@ -1,17 +1,16 @@
 FROM python:3.12-alpine
 
+WORKDIR /code/
+
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN pip install poetry
+RUN pip install uv
 
-WORKDIR /app/
+COPY uv.lock pyproject.toml /code/
+RUN uv sync --frozen --no-install-project
 
-COPY poetry.lock pyproject.toml /app/
+COPY . /code/
 
-RUN poetry config virtualenvs.create false
-RUN poetry install
-
-COPY . /app/
-
+ENV PATH="/app/.venv/bin:$PATH"
 CMD ["python", "-m", "app.main"]
